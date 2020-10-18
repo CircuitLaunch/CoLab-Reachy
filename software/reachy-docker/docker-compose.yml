@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+    reachy-docker:
+        image: ekkus93/reachy-docker:latest
+        container_name: reachy-docker
+        ports:
+            - 8888:8888
+            - 8889:8889
+            - 8890:8890
+            - 9000:9000
+            - 6171:6171
+            - 843:843
+        volumes:
+            - ../../../reachy:/reachy
+        stdin_open: true
+        tty: true
