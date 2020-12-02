@@ -1,5 +1,6 @@
 #!/bin/bash
 
+conda init bash
 conda activate reachy-docker
 
 cd /reachy
