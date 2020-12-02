@@ -11,6 +11,8 @@ services:
             - 9000:9000
             - 6171:6171
             - 843:843
+            - 7189:3389
+            - 7183:1883
         volumes:
             - ../../../reachy:/reachy
         stdin_open: true

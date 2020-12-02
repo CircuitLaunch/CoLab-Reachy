@@ -1,4 +1,4 @@
-name: reachy-docker
+name: reachy-env
 
 dependencies:
     - python=3.6
@@ -11,5 +11,13 @@ dependencies:
     - tqdm
     - pip
     - jupyter
+    - tensorflow
+    - protobuf
+    - pyaudio
     - pip:
         - reachy==1.2.3
+        - paho-mqtt
+        - webrtcvad
+        - pocketsphinx
+        - respeaker
+        - deepspeech

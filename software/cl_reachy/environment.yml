@@ -1,0 +1,26 @@
+name: reachy-env
+
+dependencies:
+    - python=3.6
+    - numpy
+    - pandas
+    - matplotlib
+    - libopencv
+    - opencv
+    - py-opencv
+    - tqdm
+    - pip
+    - jupyter
+    - tensorflow
+    - protobuf
+    - pyaudio
+    - pip:
+        - reachy==1.2.3
+        - paho-mqtt
+        - webrtcvad
+        - pocketsphinx
+        - respeaker
+        - deepspeech
+        - pyttsx3
+        - keyboard
+
