@@ -26,30 +26,34 @@ class FacialRecognition(object):
         self.net = cv2.dnn.readNetFromCaffe(self.prototxt, self.model)
 
     def detect_faces(self, frame):
-        frame = imutils.resize(frame, width=400)
-
-        if self.W is None or self.H is None:
-            self.H, self.W = frame.shape[:2]
-
-        blob = cv2.dnn.blobFromImage(frame, 1.0, (self.W, self.H), (104.0, 177.0, 123.0))
-        self.net.setInput(blob)
-        detections = self.net.forward()
         rects = []
+        try:
+            frame = imutils.resize(frame, width=400)
 
-        for i in range(0, detections.shape[2]):
-            if detections[0, 0, i, 2] > self.confidence:
-                box = detections[0, 0, i, 3:7] * np.array([self.W, self.H, self.W, self.H])
-                rects.append(box.astype("int"))
+            if self.W is None or self.H is None:
+                self.H, self.W = frame.shape[:2]
 
-                (startX, startY, endX, endY) = box.astype("int")
-                cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
+            blob = cv2.dnn.blobFromImage(frame, 1.0, (self.W, self.H), (104.0, 177.0, 123.0))
+            self.net.setInput(blob)
+            detections = self.net.forward()
+            rects = []
 
-        objects = self.ct.update(rects)
+            for i in range(0, detections.shape[2]):
+                if detections[0, 0, i, 2] > self.confidence:
+                    box = detections[0, 0, i, 3:7] * np.array([self.W, self.H, self.W, self.H])
+                    rects.append(box.astype("int"))
 
-        for (objectID, centroid) in objects.items():
-            text = "ID {}".format(objectID)
-            cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-            cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
+                    (startX, startY, endX, endY) = box.astype("int")
+                    cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
+
+            objects = self.ct.update(rects)
+
+            for (objectID, centroid) in objects.items():
+                text = "ID {}".format(objectID)
+                cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
+        except:
+            pass
 
         return frame, rects
 

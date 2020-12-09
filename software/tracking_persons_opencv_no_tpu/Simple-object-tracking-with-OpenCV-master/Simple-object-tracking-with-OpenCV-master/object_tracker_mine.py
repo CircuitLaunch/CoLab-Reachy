@@ -36,6 +36,7 @@ def detect_faces(W, H, ct, net, frame):
 
 
     for i in range(0, detections.shape[2]):
+        print("#{} - confidence: {}".format(i, detections[0, 0, i, 2]))
         if detections[0, 0, i, 2] > args['confidence']:
             box = detections[0, 0, i, 3:7] * np.array([W, H, W, H])
             rects.append(box.astype("int"))
@@ -63,17 +64,21 @@ def main():
         frame = vs.read()
         frame = imutils.resize(frame, width=400)
 
-        if W is None or H is None:
-            H, W = frame.shape[:2]
+        try:
+            if W is None or H is None:
+                H, W = frame.shape[:2]
 
-        frame, rects = detect_faces(W, H, ct, net, frame)
-        print(rects)
+            frame, rects = detect_faces(W, H, ct, net, frame)
+            print(rects)
 
-        cv2.imshow("Frame", frame)
-        key = cv2.waitKey(1) & 0xFF
+            cv2.imshow("Frame", frame)
+            key = cv2.waitKey(1) & 0xFF
 
-        if key == ord('q'):
-            break
+            if key == ord('q'):
+                break
+        except Exception as e:
+            # skip bad frames
+            print(Exception)
 
     cv2.destroyAllWindows()
     vs.stop()
