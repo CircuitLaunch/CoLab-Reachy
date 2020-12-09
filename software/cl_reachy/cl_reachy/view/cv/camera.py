@@ -2,6 +2,7 @@ import cv2
 import threading
 import time
 from ...node import NodeBase
+from .facialrecogn import FacialRecognition
 
 class Camera(NodeBase):
     def __init__(self, node_name="camera", host="127.0.0.1", port=1883,
@@ -11,6 +12,9 @@ class Camera(NodeBase):
         self.taking_photo = False
 
         self.add_subscribe('+/photo/request', self.handle_take_photo)
+
+        # TODO: don't use default params
+        self.fr = FacialRecognition()
 
     def run(self):
         self.run_thread = threading.Thread(target=super().run)
@@ -33,13 +37,10 @@ class Camera(NodeBase):
         if not ret:
             raise Exception("Taking photo failed")
 
-        height, width, layers = frame.shape
-        new_h = int(height / 4)
-        new_w = int(width / 4)
-        resized_frame = cv2.resize(frame, (new_w, new_h))
+        frame, rects = self.fr.detect_faces(frame)
 
         # imshow needs to be run in the main thread
-        cv2.imshow('frame', resized_frame)
+        cv2.imshow('frame', frame)
         #cv2.waitKey()
         while(True):
             if cv2.waitKey(1) & 0xFF == ord('q'):

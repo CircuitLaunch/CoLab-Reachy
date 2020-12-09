@@ -22,4 +22,6 @@ dependencies:
         - respeaker
         - deepspeech
         - pyttsx3
+        - imutils
+
 
