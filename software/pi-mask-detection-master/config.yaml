@@ -1,0 +1,21 @@
+device:
+  guid: a4af5779-29f5-48a5-99f3-f794716cc3f9
+  type: Raspberry Pi 4 Model B
+  enrolled_on: "2020-01-01 10:00:00.633803"
+
+deployment:
+  deployed_on: "2020-08-20 07:00:00.763214"
+  latitude: 42.3602534
+  longitude: -71.0582912
+
+models:
+  face_detection:
+    model: "models/ssd_mobilenet_v2_face_quant_postprocess_edgetpu.tflite"
+    guid: 325243dd-fc24-41f3-afcb-7a547fa25ddc
+    threshold: 0.4
+  mask_classifier:
+    model: "models/mask_detector/edgetpu_model.tflite"
+    guid: 78d361c4-0dcb-45c4-8fc5-79c7d1f374ad
+    labels: "models/mask_detector/dict.txt"
+    threshold: 0.8
+
