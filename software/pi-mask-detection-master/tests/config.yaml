@@ -1,0 +1,20 @@
+device:
+  guid: a4af5779-29f5-48a5-99f3-f794716cc3f9
+  type: Test Device
+  enrolled_on: "2020-01-01 10:00:00.633803"
+
+deployment:
+  deployed_on: "2020-08-20 07:00:00.763214"
+  latitude: 00.0000000
+  longitude: 00.000000
+
+models:
+  face_detection:
+    model: "dummy/path/to/face_detection_model"
+    guid: 325243dd-fc24-41f3-afcb-7a547fa25ddc
+    threshold: 0.8
+  mask_classifier:
+    model: "dummy/path/to/mask_classifier_model"
+    guid: 78d361c4-0dcb-45c4-8fc5-79c7d1f374ad
+    labels: "dummy/path/to/labels.txt"
+    threshold: 0.8
