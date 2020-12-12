@@ -15,5 +15,6 @@ class DataModelBase(object):
     def __str__(self):
         return self.to_json()
 
+
     def __repr__(self):
         return self.to_json()

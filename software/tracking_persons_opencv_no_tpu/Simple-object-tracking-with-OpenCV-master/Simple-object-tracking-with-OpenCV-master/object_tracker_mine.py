@@ -36,8 +36,8 @@ def detect_faces(W, H, ct, net, frame):
 
 
     for i in range(0, detections.shape[2]):
-        print("#{} - confidence: {}".format(i, detections[0, 0, i, 2]))
         if detections[0, 0, i, 2] > args['confidence']:
+            print("#{} - confidence: {}".format(i, detections[0, 0, i, 2]))
             box = detections[0, 0, i, 3:7] * np.array([W, H, W, H])
             rects.append(box.astype("int"))
 

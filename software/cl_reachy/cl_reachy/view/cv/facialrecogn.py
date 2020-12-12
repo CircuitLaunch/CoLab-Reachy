@@ -7,6 +7,7 @@ import cv2
 import argparse
 import imutils
 import time
+from ...model.frames import FrameData, FrameDataCollection
 
 class FacialRecognition(object):
     def __init__(self, prototxt="deploy.prototxt", model="res10_300x300_ssd_iter_140000.caffemodel", confidence=0.5):
@@ -25,8 +26,15 @@ class FacialRecognition(object):
         print("[INFO] loading model...")
         self.net = cv2.dnn.readNetFromCaffe(self.prototxt, self.model)
 
+        self.frame_data_collection = FrameDataCollection()
+
+    def add_frame_data(self, frame_data):
+        self.frame_data_collection.add(frame_data)
+
     def detect_faces(self, frame):
         rects = []
+        objects = {}
+
         try:
             frame = imutils.resize(frame, width=400)
 
@@ -55,5 +63,7 @@ class FacialRecognition(object):
         except:
             pass
 
-        return frame, rects
+        frame_data = FrameData(rects, objects)
+
+        return frame, frame_data
 

@@ -9,9 +9,10 @@ class Camera(NodeBase):
                     username=None, password=None, subscribe_dict={}, run_sleep=0.1):
         super().__init__(node_name, host, port, username, password, subscribe_dict, run_sleep)
 
-        self.taking_photo = False
+        self.capture_frames = False
+        self.vid = cv2.VideoCapture(0)
 
-        self.add_subscribe('+/photo/request', self.handle_take_photo)
+        self.add_subscribe('+/photo/request', self.handle_capture_frames)
 
         # TODO: don't use default params
         self.fr = FacialRecognition()
@@ -23,36 +24,45 @@ class Camera(NodeBase):
         self.running = True
 
         while self.running:
-            if self.taking_photo:
-                self.take_photo()
-                self.taking_photo = False
+            if self.capture_frames:
+                self.process_frame()
+
             time.sleep(self.run_sleep)
 
+        self.shutdown()
+
+    def shutdown(self):
+        self.vid.release()
         exit()
 
-    def take_photo(self):
-        vid = cv2.VideoCapture(0)
-        ret, frame = vid.read()
-        vid.release()
-        if not ret:
-            raise Exception("Taking photo failed")
+    def process_frame(self):
+        cnt = 0
+        while self.capture_frames:
+            ret, frame = self.vid.read()
+            if not ret:
+                continue
 
-        frame, rects = self.fr.detect_faces(frame)
+            frame, frame_data = self.fr.detect_faces(frame)
+            #self.publish("camera/frame", frame_data.to_json())
+            #print(frame_data.to_json())
 
-        # imshow needs to be run in the main thread
-        cv2.imshow('frame', frame)
-        #cv2.waitKey()
-        while(True):
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            # imshow needs to be run in the main thread
+            cv2.imshow('frame', frame)
+
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord('q'):
+                self.capture_frames = False
                 break
-            time.sleep(self.run_sleep)
+
+            cnt += 1
 
         cv2.destroyAllWindows()
-
         self.publish("camera/photo/complete")
 
-    def handle_take_photo(self, client, userdata, message):
-        self.taking_photo = True
+
+
+    def handle_capture_frames(self, client, userdata, message):
+        self.capture_frames = True
 
 def main():
     node = Camera("camera")
