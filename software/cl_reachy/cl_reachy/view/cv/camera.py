@@ -3,6 +3,7 @@ import threading
 import time
 from ...node import NodeBase
 from .facialrecogn import FacialRecognition
+from ...model.messages import SayMessage
 
 class Camera(NodeBase):
     def __init__(self, node_name="camera", host="127.0.0.1", port=1883,
@@ -12,10 +13,11 @@ class Camera(NodeBase):
         self.capture_frames = False
         self.vid = cv2.VideoCapture(0)
 
-        self.add_subscribe('+/photo/request', self.handle_capture_frames)
+        self.add_subscribe('+/facialrecognition/start', self.handle_facial_recognition_start)
+        self.add_subscribe('+/facialrecognition/stop', self.handle_facial_recognition_stop)
 
         # TODO: don't use default params
-        self.fr = FacialRecognition()
+        self.fr = FacialRecognition(confidence=0.9)
 
     def run(self):
         self.run_thread = threading.Thread(target=super().run)
@@ -55,14 +57,31 @@ class Camera(NodeBase):
                 break
 
             cnt += 1
+            print("###cnt: ", cnt)
+
+            if cnt % 20 == 0:
+                num_of_people = frame_data.num_of_people
+                if num_of_people == 0:
+                    say_msg = SayMessage("There are no people in the frame")
+                elif num_of_people == 1:
+                    say_msg = SayMessage("There is one person in the frame")
+                else:
+                    say_msg = SayMessage("There are {} people in the frame".format(num_of_people))
+                payload = say_msg.to_json()
+                print(payload)
+
+                self.publish("maincontroller/say/request", payload=payload)
 
         cv2.destroyAllWindows()
         self.publish("camera/photo/complete")
 
-
-
-    def handle_capture_frames(self, client, userdata, message):
+    def handle_facial_recognition_start(self, client, userdata, message):
+        print("###handle_facial_recognition_start")
         self.capture_frames = True
+
+    def handle_facial_recognition_stop(self, client, userdata, message):
+        print("###handle_facial_recognition_stop")
+        self.capture_frames = False
 
 def main():
     node = Camera("camera")

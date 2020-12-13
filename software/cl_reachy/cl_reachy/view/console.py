@@ -16,7 +16,8 @@ class Console(NodeBase):
             "stop_all": self.handle_stop_all,
             "log": self.handle_log,
             "say": self.handle_say,
-            "photo": self.handle_photo,
+            "facial_recognition_start": self.handle_facial_recognition_start,
+            "facial_recognition_stop": self.handle_facial_recognition_stop,
             "sample_motion_head": self.handle_sample_motion_head,
             "sample_motion_orbita": self.handle_sample_motion_orbita,
             "sample_motion_right_arm": self.handle_sample_motion_right_arm,
@@ -29,7 +30,8 @@ class Console(NodeBase):
             "stop_all": "stop all nodes (including the console app)",
             "log": "send message to logger",
             "say": "say message",
-            "photo": "take photo",
+            "facial_recognition_start": "start facial recognition",
+            "facial_recognition_stop": "stop facial recognition",
             "sample_motion_head": "move the head",
             "sample_motion_orbita": "move the orbita",
             "sample_motion_right_arm": "move the right arm",
@@ -73,8 +75,12 @@ class Console(NodeBase):
 
         self.publish("console/say/request", payload=payload)
 
-    def handle_photo(self, command_input):
-        self.publish("console/photo/request")
+
+    def handle_facial_recognition_start(self, command_input):
+        self.publish("console/facialrecognition/start")
+
+    def handle_facial_recognition_stop(self, command_input):
+        self.publish("console/facialrecognition/stop")
 
     def handle_sample_motion_head(self, command_input):
         self.publish("console/sample_motion/request/head")

@@ -61,7 +61,7 @@ python -m cl_reachy.view.cv.camera
 ### Speech Synthesis
 Says the message from a say message.
 ```bash
-python -m cl_reachy.view.speech.synthesis
+python -m cl_reachy.view.sound.speechsynthesis
 ```
 
 ### Kinematics/Body

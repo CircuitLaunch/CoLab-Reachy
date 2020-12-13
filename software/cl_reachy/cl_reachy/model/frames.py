@@ -17,6 +17,13 @@ class FrameData(DataModelBase):
         self.rect_dict = self.make_rect_dict(self.rects)
         self.area_dict = self.make_area_dict(self.rect_dict)
 
+    @property
+    def num_of_people(self):
+        if self.rects is None:
+            return 0
+
+        return len(self.rects)
+
     def get_ids(self):
         return self.centroid_objs.keys()
 
