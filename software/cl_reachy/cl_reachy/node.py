@@ -76,7 +76,7 @@ class NodeBase(object):
     def loop_stop(self):
         self.client.loop_stop()
 
-    def stop(self, client, userdata, message):
+    def stop(self):
         self.running = False
 
     def subscribe(self, topic):
@@ -91,10 +91,16 @@ class NodeBase(object):
         p = re.compile(regex_key)
         return p.match(topic)
 
+    def is_topic_stop_all(self, topic):
+        return self.does_topic_match(topic, "+/stop/all")
+
     def on_message(self, client, userdata, message):
         for key in self.subscribe_dict.keys():
             if self.does_topic_match(message.topic, key):
-                self.subscribe_dict[key](client, userdata, message)
+                if self.is_topic_stop_all(key):
+                    self.subscribe_dict[key]()
+                else:
+                    self.subscribe_dict[key](client, userdata, message)
 
     def make_on_message(self):
         def on_message(client, userdata, message):

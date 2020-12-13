@@ -1,5 +1,6 @@
 import threading
-from ..model.messages import LogMessage, SayMessage
+import time
+from ..model.messages import LogMessage, SayMessage, ThresholdStartMessage
 from ..node import NodeBase
 
 class Console(NodeBase):
@@ -19,6 +20,7 @@ class Console(NodeBase):
             "sample_motion_head": self.handle_sample_motion_head,
             "sample_motion_orbita": self.handle_sample_motion_orbita,
             "sample_motion_right_arm": self.handle_sample_motion_right_arm,
+            "threshold_start": self.handle_threshold_start,
         }
 
         self.command_desc_dict = {
@@ -31,6 +33,7 @@ class Console(NodeBase):
             "sample_motion_head": "move the head",
             "sample_motion_orbita": "move the orbita",
             "sample_motion_right_arm": "move the right arm",
+            "threshold_start": "start threshold",
         }
 
     def handle_help(self, command_input):
@@ -46,7 +49,10 @@ class Console(NodeBase):
         self.publish("console/stop/console")
 
     def handle_stop_all(self, command_input):
+        print("###stop_all1")
         self.publish("console/stop/all")
+        time.sleep(5)
+        print("###stop_all2")
 
     def get_msg_from_command_input(self, command, command_input):
         start_idx = len(command)+1
@@ -81,6 +87,10 @@ class Console(NodeBase):
 
     def handle_sample_motion_right_arm(self, command_input):
         self.publish("console/sample_motion/request/right_arm")
+
+    def handle_threshold_start(self, command_input):
+        threshold_start_msg = ThresholdStartMessage(threshold="+2000", num=1)
+        self.publish("console/threshold/start", threshold_start_msg.to_json())
 
     def get_command_handler(self, command_input):
         try:

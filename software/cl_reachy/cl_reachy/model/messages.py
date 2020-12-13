@@ -27,6 +27,48 @@ class SayMessage(DataModelBase):
     def from_json(msgJson):
         return json.loads(msgJson, object_hook=SayMessage.decoder)
 
+class AudioInputStateMessage(DataModelBase):
+    def __init__(self, is_busy, mic_owner):
+        self.is_busy = is_busy
+        self.mic_owner = mic_owner
+
+    @staticmethod
+    def decoder(msgDict):
+        return namedtuple(AudioInputStateMessage.__name__, msgDict.keys())(*msgDict.values())
+
+    @staticmethod
+    def from_json(msgJson):
+        return json.loads(msgJson, object_hook=AudioInputStateMessage.decoder)
+
+class ThresholdStartMessage(DataModelBase):
+    def __init__(self, threshold, num, force=False):
+        self.threshold = threshold
+        self.num = num
+        self.force = False
+
+    @staticmethod
+    def decoder(msgDict):
+        return namedtuple(ThresholdStartMessage.__name__, msgDict.keys())(*msgDict.values())
+
+    @staticmethod
+    def from_json(msgJson):
+        return json.loads(msgJson, object_hook=ThresholdStartMessage.decoder)
+
+class ThresholdResponseMessage(DataModelBase):
+    def __init__(self, running, threshold, num):
+        self.running = running
+        self.threshold = threshold
+        self.num = num
+
+    @staticmethod
+    def decoder(msgDict):
+        return namedtuple(ThresholdResponseMessage.__name__, msgDict.keys())(*msgDict.values())
+
+    @staticmethod
+    def from_json(msgJson):
+        return json.loads(msgJson, object_hook=ThresholdResponseMessage.decoder)
+
+
 
 
 
