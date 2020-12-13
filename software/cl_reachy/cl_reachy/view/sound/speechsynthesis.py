@@ -22,6 +22,7 @@ class SpeechSynthesis(NodeBase):
     def handle_say(self, client, userdata, message):
         try:
             _message = str(message.payload.decode("utf-8"))
+            print("###_message: ", _message)
             say_msg = SayMessage.from_json(_message)
 
             print(say_msg.msg)

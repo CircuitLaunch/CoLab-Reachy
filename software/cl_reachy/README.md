@@ -55,7 +55,7 @@ python -m cl_reachy.view.console
 ### Camera
 Takes a picture from your webcam.
 ```bash
-python -m cl_reachy.view.cv.camera
+python -m cl_reachy.controller.visual
 ```
 
 ### Speech Synthesis
@@ -68,4 +68,14 @@ python -m cl_reachy.view.sound.speechsynthesis
 Currently interfaces with the simulator. Accepts messages for sample, preset motions.
 ```bash
 python -m cl_reachy.view.kinematics.body
+```
+
+### Audio
+```bash
+python -m cl_reachy.controller.audio
+```
+
+### Main Controller
+```bash
+python -m cl_reachy.controller.main
 ```
