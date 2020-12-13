@@ -1,3 +1,5 @@
+import pydub
+import signal
 from soundmeter.meter import Meter
 from ...model.messages import ThresholdResponseMessage
 
@@ -45,9 +47,6 @@ class Threshold(Meter):
             v = 'Executing %s' % self.script
             self.verbose_info(v)
 
-            print("###script: ", self.script)
-            print("###trigger_callback: ", self.triggered_callback)
-
             if self.script:
                 self.popen(rms)
             elif self.triggered_callback:
@@ -63,11 +62,43 @@ class Threshold(Meter):
         threshold_response_msg = ThresholdResponseMessage(True, self.threshold, self.num)
         self.publish("audioinput/threshold/response", threshold_response_msg.to_json())
 
-        super().start()
+        segment = self.segment or self.config.AUDIO_SEGMENT_LENGTH
+        self.num_frames = int(
+            self.config.RATE / self.config.FRAMES_PER_BUFFER * segment)
+        if self.seconds:
+            signal.setitimer(signal.ITIMER_REAL, self.seconds)
+        if self.verbose:
+            self._timer = time.time()
+        if self.collect:
+            print('Collecting RMS values...')
+        if self.action:
+            # Interpret threshold
+            self.get_threshold()
+
+        try:
+            self.is_running = True
+            record = self.record()
+            while not self._graceful:
+                record.send(True)  # Record stream `AUDIO_SEGMENT_LENGTH' long
+
+                data = self.output.getvalue()
+                segment = pydub.AudioSegment(data)
+                rms = segment.rms
+                if self.collect:
+                    self.collect_rms(rms)
+                self.meter(rms)
+                if self.action:
+                    if self.is_triggered(rms):
+                        self.execute(rms)
+                self.monitor(rms)
+            self.is_running = False
+            self.stop()
+
+        except self.__class__.StopException:
+            self.is_running = False
+            self.stop()
 
     def stop(self):
-        super().stop()
-
         """Stop the stream and terminate PyAudio"""
         self.prestop()
         if not self._graceful:

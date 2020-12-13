@@ -1,9 +1,10 @@
-import paho.mqtt.client as paho
-import time
+from datetime import datetime
 import re
 import random
-from datetime import datetime
+import signal
 import sys
+import time
+import paho.mqtt.client as paho
 
 class NodeBase(object):
     def __init__(self, node_name="nodebase", host="127.0.0.1", port=1883,
@@ -30,6 +31,22 @@ class NodeBase(object):
         if self.username is not None and self.password is not None:
             self.username_pw_set(username=self.username, password=self.password)
 
+        # Register signal handlers
+        signal.signal(signal.SIGINT, self.make_sigint_handler())
+        signal.signal(signal.SIGALRM, self.make_sigalrm_handler())
+
+    def make_sigint_handler(self):
+        def sigint_handler(signum, frame):
+            self.node_stop()
+
+        return sigint_handler
+
+    def make_sigalrm_handler(self):
+        def sigalrm_handler(signum, frame):
+            self.node_stop()
+
+        return sigalrm_handler
+
     def run(self):
         print("Running...")
         self.client.on_connect = self.make_on_connect()
@@ -52,7 +69,7 @@ class NodeBase(object):
         stop_topics = ["+/stop/{}".format(self.node_name), "+/stop/all"]
         for stop_topic in stop_topics:
             if stop_topic not in self.subscribe_dict.keys():
-                self.subscribe_dict[stop_topic] = self.stop
+                self.subscribe_dict[stop_topic] = self.node_stop
 
         for key in self.subscribe_dict.keys():
             self.subscribe(key)
@@ -76,7 +93,7 @@ class NodeBase(object):
     def loop_stop(self):
         self.client.loop_stop()
 
-    def stop(self):
+    def node_stop(self):
         self.running = False
 
     def subscribe(self, topic):
@@ -91,13 +108,14 @@ class NodeBase(object):
         p = re.compile(regex_key)
         return p.match(topic)
 
-    def is_topic_stop_all(self, topic):
-        return self.does_topic_match(topic, "+/stop/all")
+    def is_topic_stop(self, topic):
+        return self.does_topic_match(topic, "+/stop/{}".format(self.node_name)) or self.does_topic_match(topic, "+/stop/all")
 
     def on_message(self, client, userdata, message):
         for key in self.subscribe_dict.keys():
             if self.does_topic_match(message.topic, key):
-                if self.is_topic_stop_all(key):
+                if self.is_topic_stop(key):
+                    # stop method doesn't take any params
                     self.subscribe_dict[key]()
                 else:
                     self.subscribe_dict[key](client, userdata, message)
@@ -137,4 +155,6 @@ def main():
 if __name__ == "__main__":
     # execute only if run as a script
     main()
+
+
 

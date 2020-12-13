@@ -49,10 +49,7 @@ class Console(NodeBase):
         self.publish("console/stop/console")
 
     def handle_stop_all(self, command_input):
-        print("###stop_all1")
         self.publish("console/stop/all")
-        time.sleep(5)
-        print("###stop_all2")
 
     def get_msg_from_command_input(self, command, command_input):
         start_idx = len(command)+1

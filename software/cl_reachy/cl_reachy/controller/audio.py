@@ -1,3 +1,4 @@
+import threading
 from ..node import NodeBase
 from ..view.sound.threshold import Threshold
 from ..model.messages import AudioInputStateMessage, ThresholdStartMessage
@@ -29,6 +30,15 @@ class AudioInputController(NodeBase):
 
         return type(self.mic_owner).__name__
 
+    def make_sigint_handler(self):
+        def sigint_handler(signum, frame):
+            if self.is_busy and self.mic_owner_name == THRESHOLD:
+                self.mic_owner.stop()
+
+            self.node_stop()
+
+        return sigint_handler
+
     def publish_state(self):
         msg = AudioInputStateMessage(is_busy=self.is_busy, mic_owner=self.mic_owner_name)
         self.publish("audioinput/state", msg.to_json())
@@ -52,12 +62,19 @@ class AudioInputController(NodeBase):
 
         self.mic_owner = Threshold(action="exec-stop", threshold=threshold_start_msg.threshold,
                                     num=int(threshold_start_msg.num), publish=self.publish)
+
         self.publish_state()
-        self.mic_owner.start(final_callback=self.completed)
+
+        def start():
+            self.mic_owner.start(final_callback=self.completed)
+
+        t = threading.Thread(target=start)
+        t.start()
 
     def handle_threshold_stop(self, client, userdata, message):
         if self.mic_owner_name == THRESHOLD:
             self.mic_owner.stop()
+            self.mic_owner = None
 
     def handle_speech_recognition_start(self, client, userdata, message):
          pass
@@ -65,9 +82,12 @@ class AudioInputController(NodeBase):
     def handle_speech_recognition_stop(self, client, userdata, message):
         pass
 
-    def stop(self):
+    def node_stop(self):
         if self.mic_owner is not None:
             self.mic_owner.stop()
+            self.mic_owner = None
+
+        super().node_stop()
 
 def main():
     node = None
@@ -80,3 +100,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
