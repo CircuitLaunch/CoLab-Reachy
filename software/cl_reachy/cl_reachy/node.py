@@ -4,6 +4,7 @@ import random
 import signal
 import sys
 import time
+import threading
 import paho.mqtt.client as paho
 
 class NodeBase(object):
@@ -31,36 +32,88 @@ class NodeBase(object):
         if self.username is not None and self.password is not None:
             self.username_pw_set(username=self.username, password=self.password)
 
+        self.command_dict = {
+            "help": self.handle_help,
+            "quit": self.handle_quit,
+        }
+        self.command_desc_dict = {
+            "help": "general help",
+            "quit": "quit",
+        }
+
         # Register signal handlers
-        signal.signal(signal.SIGINT, self.make_sigint_handler())
-        signal.signal(signal.SIGALRM, self.make_sigalrm_handler())
+        signal.signal(signal.SIGINT, self.make_handle_stop())
+        signal.signal(signal.SIGALRM, self.make_handle_stop())
 
-    def make_sigint_handler(self):
-        def sigint_handler(signum, frame):
-            self.node_stop()
+    def make_handle_stop(self):
+        def handle_stop(sig, frame):
+            self.running = False
 
-        return sigint_handler
+        return handle_stop
 
-    def make_sigalrm_handler(self):
-        def sigalrm_handler(signum, frame):
-            self.node_stop()
+    def handle_help(self, command_input):
+        print("Commands: ")
+        print("=========")
 
-        return sigalrm_handler
+        for key in sorted(self.command_desc_dict.keys()):
+            print("{} - {}".format(key, self.command_desc_dict[key]))
 
-    def run(self):
-        print("Running...")
+        print()
+
+    def handle_quit(self, command_input=None):
+        self.running = False
+
+    def run_mqtt(self):
+        #print("###run_mqtt - 1")
         self.client.on_connect = self.make_on_connect()
         self.client.connect(self.host, self.port, keepalive=90)
 
+        #print("###run_mqtt - 2")
         self.subscribe_all()
         self.client.on_message=self.make_on_message()
 
-        self.running = True
+        #print("###run_mqtt - 3")
         self.client.loop_start()
         while self.running:
             time.sleep(self.run_sleep)
+
+        #print("###run_mqtt - 4")
         self.client.loop_stop()
         self.client.disconnect()
+        #print("###run_mqtt - 5")
+
+    def get_command_handler(self, command_input):
+        try:
+            command = command_input.split(' ')[0]
+        except:
+            return None
+
+        if command in self.command_dict.keys():
+            return self.command_dict[command]
+
+        return None
+
+    def run_console(self):
+        while self.running:
+            command_input = input("> ")
+            command_handler = self.get_command_handler(command_input)
+            if command_handler is not None:
+                command_handler(command_input)
+
+    def run(self):
+        print("Running...")
+        #print("###subscribe_dict: ", self.subscribe_dict)
+
+        self.running = True
+        threads = []
+        threads.append(threading.Thread(target=self.run_mqtt))
+        threads.append(threading.Thread(target=self.run_console))
+
+        for thread in threads:
+            thread.start()
+
+        for tread in threads:
+            thread.join()
 
     def add_subscribe(self, topic, handler):
         self.subscribe_dict[topic] = handler
@@ -105,6 +158,7 @@ class NodeBase(object):
 
     def does_topic_match(self, topic, subscribe_key):
         regex_key = self.make_regex_from_subscribe_key(subscribe_key)
+        #print("###regex_key: ", regex_key)
         p = re.compile(regex_key)
         return p.match(topic)
 
@@ -112,8 +166,10 @@ class NodeBase(object):
         return self.does_topic_match(topic, "+/stop/{}".format(self.node_name)) or self.does_topic_match(topic, "+/stop/all")
 
     def on_message(self, client, userdata, message):
+        #print("###on_message - message: ", message.topic)
         for key in self.subscribe_dict.keys():
             if self.does_topic_match(message.topic, key):
+                #print("###topic matches: ", key)
                 if self.is_topic_stop(key):
                     # stop method doesn't take any params
                     self.subscribe_dict[key]()

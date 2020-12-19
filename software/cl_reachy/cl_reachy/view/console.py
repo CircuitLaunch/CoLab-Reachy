@@ -10,9 +10,7 @@ class Console(NodeBase):
 
         self.run_thread = None
 
-        self.command_dict = {
-            "help": self.handle_help,
-            "stop": self.handle_stop,
+        _command_dict = {
             "stop_all": self.handle_stop_all,
             "log": self.handle_log,
             "say": self.handle_say,
@@ -22,11 +20,19 @@ class Console(NodeBase):
             "sample_motion_orbita": self.handle_sample_motion_orbita,
             "sample_motion_right_arm": self.handle_sample_motion_right_arm,
             "threshold_start": self.handle_threshold_start,
-        }
 
-        self.command_desc_dict = {
-            "help": "general help",
-            "stop": "stop the console app",
+            # body
+            "body_init": self.handle_body_init,
+            "body_shutdown": self.handle_body_shutdown,
+            "body_stop": self.handle_body_stop,
+            "wave": self.handle_wave_arm,
+            "wiggle": self.handle_wiggle_antennas,
+            "move_antennas_to_zero": self.handle_move_antennas_to_zero,
+            "move_right_arm_to_zero": self.handle_move_right_arm_to_zero,
+        }
+        self.command_dict.update(_command_dict)
+
+        _command_desc_dict = {
             "stop_all": "stop all nodes (including the console app)",
             "log": "send message to logger",
             "say": "say message",
@@ -36,19 +42,18 @@ class Console(NodeBase):
             "sample_motion_orbita": "move the orbita",
             "sample_motion_right_arm": "move the right arm",
             "threshold_start": "start threshold",
+
+            # body
+            "body_init": "init body",
+            "body_shutdown": "shutdown body",
+            "body_stop": "emergency stop body",
+            "wave": "wave arm",
+            "wiggle": "wiggle antennas",
+            "move_antennas_to_zero": "move head to zero",
+            "move_right_arm_to_zero": "move_right_arm_to_zero",
         }
+        self.command_desc_dict.update(_command_desc_dict)
 
-    def handle_help(self, command_input):
-        print("Commands: ")
-        print("=========")
-
-        for key in sorted(self.command_desc_dict.keys()):
-            print("{} - {}".format(key, self.command_desc_dict[key]))
-
-        print()
-
-    def handle_stop(self, command_input):
-        self.publish("console/stop/console")
 
     def handle_stop_all(self, command_input):
         self.publish("console/stop/all")
@@ -95,29 +100,26 @@ class Console(NodeBase):
         threshold_start_msg = ThresholdStartMessage(threshold="+2000", num=1)
         self.publish("console/threshold/start", threshold_start_msg.to_json())
 
-    def get_command_handler(self, command_input):
-        try:
-            command = command_input.split(' ')[0]
-        except:
-            return None
+    def handle_body_init(self, command_input):
+        self.publish("console/body/init")
 
-        if command in self.command_dict.keys():
-            return self.command_dict[command]
+    def handle_body_shutdown(self, command_input):
+        self.publish("console/body/shutdown")
 
-        return None
+    def handle_body_stop(self, command_input):
+        self.publish("console/body/stop")
 
-    def run(self):
-        self.run_thread = threading.Thread(target=super().run)
-        self.run_thread.start()
+    def handle_wave_arm(self, command_input):
+        self.publish("console/body/right_arm/wave")
 
-        self.running = True
-        while self.running:
-            command_input = input("> ")
-            command_handler = self.get_command_handler(command_input)
-            if command_handler is not None:
-                command_handler(command_input)
+    def handle_wiggle_antennas(self, command_input):
+        self.publish("console/body/head/antenna/wiggle")
 
-        exit()
+    def handle_move_antennas_to_zero(self, command_input):
+        self.publish("console/body/head/antenna/zero")
+
+    def handle_move_right_arm_to_zero(self, command_input):
+        self.publish("console/body/right_arm/zero")
 
 def main():
     node = Console("console")

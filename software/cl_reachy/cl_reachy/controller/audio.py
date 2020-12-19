@@ -82,12 +82,12 @@ class AudioInputController(NodeBase):
     def handle_speech_recognition_stop(self, client, userdata, message):
         pass
 
-    def node_stop(self):
+    def stop(self):
         if self.mic_owner is not None:
             self.mic_owner.stop()
             self.mic_owner = None
 
-        super().node_stop()
+        super().stop()
 
 def main():
     node = None

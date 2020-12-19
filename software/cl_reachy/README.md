@@ -64,10 +64,10 @@ Says the message from a say message.
 python -m cl_reachy.view.sound.speechsynthesis
 ```
 
-### Kinematics/Body
+### Body
 Currently interfaces with the simulator. Accepts messages for sample, preset motions.
 ```bash
-python -m cl_reachy.view.kinematics.body
+python -m cl_reachy.view.body.body
 ```
 
 ### Audio

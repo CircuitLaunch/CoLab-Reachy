@@ -56,7 +56,11 @@ RUN echo "source activate reachy-docker" >> /home/reachyuser/.bashrc
 RUN echo "export PATH=$PATH:/usr/sbin" >> /home/reachyuser/.bash_profile
 RUN echo "source activate reachy-docker" >> /home/reachyuser/.bash_profile
 
+RUN /opt/anaconda/bin/conda init bash
+
 USER root
+
+RUN /opt/anaconda/bin/conda init bash
 
 ENV TERM xterm-256color
 VOLUME ["/reachy"]

@@ -30,8 +30,8 @@ class CameraController(NodeBase):
 
         self.last_time_someone_seen = None
         self.last_time_someone_seen_threshold = 60
-        self.last_time_no_one_seen = None
         self.last_time_no_one_seen_threshold = 60
+        self.start_time = datetime.now()
 
         self.capture_frames = False
 
@@ -62,22 +62,20 @@ class CameraController(NodeBase):
 
         self.last_time_someone_seen = datetime.now()
 
-    def how_long_last_seen(self):
-        if self.last_time_someone_seen is None:
-            return None
-
+    def how_long_no_one_seen(self):
         now = datetime.now()
+        
+        if self.last_time_someone_seen is None:
+            return (now - self.start_time).seconds
 
         return (now - self.last_time_someone_seen).seconds
 
     def process_no_one_there(self):
-        if self.state == SOMEONE_THERE:
-            last_seen_secs = self.how_long_last_seen()
-            if last_seen_secs is not None and last_seen_secs > self.last_time_someone_seen_threshold:
-                self.state = NO_ONE_THERE
-                self.last_time_no_one_seen = datetime.now()
-
-                self.publish("camera/noonethere")
+        how_long_no_one_seen = self.how_long_no_one_seen()
+        
+        if how_long_no_one_seen is not None and how_long_no_one_seen > self.last_time_no_one_seen_threshold:
+            self.state = NO_ONE_THERE
+            self.publish("camera/noonethere")
 
     def process_frame(self):
         cnt = 0
@@ -125,9 +123,7 @@ class CameraController(NodeBase):
 
             print("###last_time_someone_seen: ", self.last_time_someone_seen)
             print("###last_time_someone_seen_threshold: ", self.last_time_someone_seen_threshold)
-            print("###last_time_no_one_seen: ", self.last_time_no_one_seen)
-            print("###last_time_no_one_seen_threshold : ", self.last_time_no_one_seen_threshold)
-            print("###how_long_last_seen: ", self.how_long_last_seen())
+            print("###how_long_no_one_seen: ", self.how_long_no_one_seen())
             print("###===========================")
 
         cv2.destroyAllWindows()
