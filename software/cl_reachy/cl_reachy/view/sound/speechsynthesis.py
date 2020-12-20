@@ -1,6 +1,9 @@
 import os
-import platform
-import pyttsx3
+from gtts import gTTS
+from io import BytesIO
+from pydub import AudioSegment
+from pydub.playback import play
+from tempfile import NamedTemporaryFile
 from ...node import NodeBase
 from ...model.messages import SayMessage
 
@@ -12,12 +15,18 @@ class SpeechSynthesis(NodeBase):
         self.add_subscribe('+/say/request', self.handle_say)
 
     def speak(self, msg):
-        if platform.system() == "Darwin":
-             os.system("say \"{}\"".format(msg))
-        else:
-            self.synthesizer = pyttsx3.init()
-            self.synthesizer.say(msg)
-            self.synthesizer.runAndWait()
+        mp3_fp = BytesIO()
+
+        tts = gTTS(msg, lang='en')
+        tts.write_to_fp(mp3_fp)
+
+        fp = NamedTemporaryFile()
+        tts.write_to_fp(fp)
+
+        audio = AudioSegment.from_file_using_temporary_files(fp.name, format="mp3")
+        play(audio)
+
+        fp.close()
 
     def handle_say(self, client, userdata, message):
         try:
