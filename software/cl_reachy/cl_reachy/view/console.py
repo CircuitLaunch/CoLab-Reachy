@@ -29,6 +29,7 @@ class Console(NodeBase):
             "wiggle": self.handle_wiggle_antennas,
             "move_antennas_to_zero": self.handle_move_antennas_to_zero,
             "move_right_arm_to_zero": self.handle_move_right_arm_to_zero,
+            "wakeword_start": self.handle_start_wakeword,
         }
         self.command_dict.update(_command_dict)
 
@@ -51,6 +52,7 @@ class Console(NodeBase):
             "wiggle": "wiggle antennas",
             "move_antennas_to_zero": "move head to zero",
             "move_right_arm_to_zero": "move_right_arm_to_zero",
+            "wakeword_start": "start wakeword",
         }
         self.command_desc_dict.update(_command_desc_dict)
 
@@ -120,6 +122,9 @@ class Console(NodeBase):
 
     def handle_move_right_arm_to_zero(self, command_input):
         self.publish("console/body/right_arm/zero")
+
+    def handle_start_wakeword(self, command_input):
+        self.publish("console/wakeword/start")
 
 def main():
     node = Console("console")

@@ -79,6 +79,7 @@ testpath==0.4.4
 tornado==6.1
 tqdm==4.54.1
 traitlets==5.0.5
+tzlocal
 wcwidth==0.2.5
 webencodings==0.5.1
 webrtcvad==2.0.10

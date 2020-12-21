@@ -81,6 +81,7 @@ class MainController(NodeBase):
         print("###interact state")
         #self.say("interact state")
         self.publish("console/body/head/antenna/wiggle")
+        self.publish("console/wakeword/start")
 
 def main():
     node = MainController("maincontroller")
