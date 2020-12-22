@@ -1,6 +1,6 @@
 import threading
 import time
-from ..model.messages import LogMessage, SayMessage, ThresholdStartMessage
+from ..model.messages import LogMessage, SayMessage, ThresholdStartMessage, WakeWordStartMessage
 from ..node import NodeBase
 
 class Console(NodeBase):
@@ -124,7 +124,8 @@ class Console(NodeBase):
         self.publish("console/body/right_arm/zero")
 
     def handle_start_wakeword(self, command_input):
-        self.publish("console/wakeword/start")
+        wakeword_start_msg = WakeWordStartMessage()
+        self.publish("console/wakeword/start", wakeword_start_msg.to_json())
 
 def main():
     node = Console("console")

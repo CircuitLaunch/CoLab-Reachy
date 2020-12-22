@@ -6,15 +6,12 @@ import random
 import sys
 import signal
 from tzlocal import get_localzone
-from ....node import NodeBase
 from ....model.messages import LogMessage, SayMessage
 from .snowboydecoder import HotwordDetector, set_path
 
-class WakeWord(NodeBase):
-    def __init__(self, node_name="wakeword", host="127.0.0.1", port=1883,
-                    username=None, password=None, subscribe_dict={}, run_sleep=0.1,
-                    sensitivity=0.5):
-        super().__init__(node_name, host, port, username, password, subscribe_dict, run_sleep)
+class WakeWord(object):
+    def __init__(self, publish, sensitivity=0.5):
+        self.publish = publish
         self.sensitivity = sensitivity
 
         # TODO: maybe move these files to a better location
@@ -29,20 +26,7 @@ class WakeWord(NodeBase):
         self.interrupted = False
         self.detector = None
 
-        signal.signal(signal.SIGINT, self.make_handle_stop())
-
         self.greetings = ['Hello, Human!', 'Hi, nice to meet you', 'How are you doing today?', '***time greeting***']
-
-        self.add_subscribe('+/wakeword/start', self.handle_wakeword_start)
-        self.add_subscribe('+/wakeword/stop', self.handle_wakeword_stop)
-
-    def make_signal_stop(self):
-        def signal_handler(signal, frame):
-            self.interrupted = True
-            sleep(5)
-            super().make_handle_stop()()
-
-        return signal_handler
 
     def make_interrupt_callback(self):
         def interrupt_callback():
@@ -67,28 +51,35 @@ class WakeWord(NodeBase):
         elif now.hour >= 6 and now.hour < 10:
             return "Good evening"
         else:
-            return "Good night"
+            return "Are you having a good night tonight?"
 
-    def make_respond_greet(self):
-        def respond_greet():
-            choice = random.randint(0,len(self.greetings)-1)
-            greeting = self.greetings[choice]
+    # TODO: maybe this should be moved to the main controller
+    def respond_greet(self):
+        choice = random.randint(0,len(self.greetings)-1)
+        greeting = self.greetings[choice]
 
-            if greeting == '***time greeting***':
-                greeting = self.get_time_greeting()
+        if greeting == '***time greeting***':
+            greeting = self.get_time_greeting()
 
-            self.say(greeting)
+        self.say(greeting)
 
-            self.interrupted = True
-            self.publish('wakeword/completed')
+        self.interrupted = True
+        self.publish('wakeword/completed')
 
-        return respond_greet
+    def handle_wakeword_start(self, sensitivity=None, callback=None):
+        if sensitivity is None:
+            sensitivity = self.sensitivity
 
-    def handle_wakeword_start(self, client, userdata, message):
+        def detected_callback():
+            self.respond_greet()
+
+            if callback is not None:
+                callback()
+
         if self.detector is None:
             self.interrupted = False
-            self.detector = HotwordDetector(self.model_path, sensitivity=self.sensitivity)
-            self.detector.start(detected_callback=self.make_respond_greet(),
+            self.detector = HotwordDetector(self.model_path, sensitivity=sensitivity)
+            self.detector.start(detected_callback=detected_callback,
                                         interrupt_check=self.make_interrupt_callback(),
                                         sleep_time=0.03)
 
@@ -98,18 +89,6 @@ class WakeWord(NodeBase):
     def handle_wakeword_stop(self, client, userdata, message):
         self.interrupted = True
 
-    def run(self):
-        super().run()
-
+    def stop(self):
         self.interrupted = True
-        if self.detector is not None:
-            self.detector.terminate()
-        self.detector = None
 
-def main():
-    node = WakeWord("wakeword")
-    node.run()
-
-if __name__ == "__main__":
-    # execute only if run as a script
-    main()

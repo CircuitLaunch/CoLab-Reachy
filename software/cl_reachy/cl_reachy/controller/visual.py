@@ -64,7 +64,7 @@ class CameraController(NodeBase):
 
     def how_long_no_one_seen(self):
         now = datetime.now()
-        
+
         if self.last_time_someone_seen is None:
             return (now - self.start_time).seconds
 
@@ -72,7 +72,7 @@ class CameraController(NodeBase):
 
     def process_no_one_there(self):
         how_long_no_one_seen = self.how_long_no_one_seen()
-        
+
         if how_long_no_one_seen is not None and how_long_no_one_seen > self.last_time_no_one_seen_threshold:
             self.state = NO_ONE_THERE
             self.publish("camera/noonethere")
@@ -98,24 +98,8 @@ class CameraController(NodeBase):
                 break
 
             cnt += 1
-            print("###cnt: ", cnt)
 
             num_of_people = frame_data.num_of_people
-            """
-            if last_num_of_people != num_of_people and num_of_people > 0:
-                if num_of_people == 0:
-                    # say_msg = SayMessage("There are no people in the frame")
-                    pass
-                elif num_of_people == 1:
-                    say_msg = SayMessage("There is one person in the frame")
-                else:
-                    say_msg = SayMessage("There are {} people in the frame".format(num_of_people))
-                payload = say_msg.to_json()
-                print(payload)
-
-                self.publish("maincontroller/say/request", payload=payload)
-            last_num_of_people = num_of_people
-            """
             if num_of_people > 0:
                 self.process_someone_there()
             else:

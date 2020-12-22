@@ -68,6 +68,18 @@ class ThresholdResponseMessage(DataModelBase):
     def from_json(msgJson):
         return json.loads(msgJson, object_hook=ThresholdResponseMessage.decoder)
 
+class WakeWordStartMessage(DataModelBase):
+    def __init__(self, sensitivity=0.5, force=False):
+        self.sensitivity = sensitivity
+        self.force = False
+
+    @staticmethod
+    def decoder(msgDict):
+        return namedtuple(WakeWordStartMessage.__name__, msgDict.keys())(*msgDict.values())
+
+    @staticmethod
+    def from_json(msgJson):
+        return json.loads(msgJson, object_hook=WakeWordStartMessage.decoder)
 
 
 

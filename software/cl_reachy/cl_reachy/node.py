@@ -64,23 +64,18 @@ class NodeBase(object):
         self.running = False
 
     def run_mqtt(self):
-        #print("###run_mqtt - 1")
         self.client.on_connect = self.make_on_connect()
         self.client.connect(self.host, self.port, keepalive=90)
 
-        #print("###run_mqtt - 2")
         self.subscribe_all()
         self.client.on_message=self.make_on_message()
 
-        #print("###run_mqtt - 3")
         self.client.loop_start()
         while self.running:
             time.sleep(self.run_sleep)
 
-        #print("###run_mqtt - 4")
         self.client.loop_stop()
         self.client.disconnect()
-        #print("###run_mqtt - 5")
 
     def get_command_handler(self, command_input):
         try:
@@ -102,7 +97,6 @@ class NodeBase(object):
 
     def run(self):
         print("Running...")
-        #print("###subscribe_dict: ", self.subscribe_dict)
 
         self.running = True
         threads = []
@@ -158,7 +152,6 @@ class NodeBase(object):
 
     def does_topic_match(self, topic, subscribe_key):
         regex_key = self.make_regex_from_subscribe_key(subscribe_key)
-        #print("###regex_key: ", regex_key)
         p = re.compile(regex_key)
         return p.match(topic)
 
@@ -166,10 +159,8 @@ class NodeBase(object):
         return self.does_topic_match(topic, "+/stop/{}".format(self.node_name)) or self.does_topic_match(topic, "+/stop/all")
 
     def on_message(self, client, userdata, message):
-        #print("###on_message - message: ", message.topic)
         for key in self.subscribe_dict.keys():
             if self.does_topic_match(message.topic, key):
-                #print("###topic matches: ", key)
                 if self.is_topic_stop(key):
                     # stop method doesn't take any params
                     self.subscribe_dict[key]()

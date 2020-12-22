@@ -22,6 +22,7 @@ class SpeechSynthesis(NodeBase):
 
         fp = NamedTemporaryFile()
         tts.write_to_fp(fp)
+        fp.flush()
 
         audio = AudioSegment.from_file_using_temporary_files(fp.name, format="mp3")
         play(audio)
@@ -31,10 +32,8 @@ class SpeechSynthesis(NodeBase):
     def handle_say(self, client, userdata, message):
         try:
             _message = str(message.payload.decode("utf-8"))
-            print("###_message: ", _message)
             say_msg = SayMessage.from_json(_message)
 
-            print(say_msg.msg)
             self.speak(say_msg.msg)
 
             self.publish("speechsynthesis/say/complete")

@@ -30,9 +30,6 @@ class MainController(NodeBase):
         self.publish("maincontroller/say/request", payload=payload)
 
     def do_start(self, client=None, userdata=None, message=None):
-        #self.say("starting state")
-        print("###starting state")
-
         threshold_start_msg = ThresholdStartMessage(threshold="+1000", num=1)
         payload = threshold_start_msg.to_json()
         self.publish("maincontroller/threshold/start", payload)
@@ -42,27 +39,20 @@ class MainController(NodeBase):
         self.state = IDLE
 
     def do_scanning(self):
-        #self.say("scanning state")
-        print("###scanning state")
-
         # TODO: add some time settings for nobody there and somebody there
         self.publish("maincontroller/facialrecognition/start")
 
         self.state = SCANNING
 
     def handle_threshold_triggered(self, client, userdata, message):
-        print("###threshold triggered")
         if self.state == IDLE:
             self.do_scanning()
 
     def handle_no_one_there(self, client, userdata, message):
-        print("###on one there")
         if self.state in [SCANNING, GREET, INTERACT]:
             self.do_start(client, userdata, message)
 
     def do_greet(self):
-        #self.say("greet state")
-        print("###greet state")
         self.say("Welcome to Circuit Launch")
         self.publish("console/body/right_arm/wave")
         self.publish("console/body/head/antenna/wiggle")
@@ -70,7 +60,6 @@ class MainController(NodeBase):
         self.state = GREET
 
     def handle_someone_there(self, client, userdata, message):
-        print("###handle someone there")
         if self.state == SCANNING:
             self.do_greet()
 
@@ -78,8 +67,6 @@ class MainController(NodeBase):
             self.do_interact(client, userdata, message)
 
     def do_interact(self, client, userdata, message):
-        print("###interact state")
-        #self.say("interact state")
         self.publish("console/body/head/antenna/wiggle")
         self.publish("console/wakeword/start")
 

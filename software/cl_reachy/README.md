@@ -64,19 +64,13 @@ Says the message from a say message.
 python -m cl_reachy.view.sound.speechsynthesis
 ```
 
-### Wake Word
-Says the message from a say message.
-```bash
-python -m cl_reachy.view.sound.wakeword.wakeword
-```
-
 ### Body
 Currently interfaces with the simulator. Accepts messages for sample, preset motions.
 ```bash
 python -m cl_reachy.view.body.body
 ```
 
-### Audio
+### Audio (Threshold/Wake Word)
 ```bash
 python -m cl_reachy.controller.audio
 ```

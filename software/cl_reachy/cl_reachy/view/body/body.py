@@ -25,8 +25,6 @@ class Body(NodeBase):
 
         self.initialize()
 
-        print("###2c")
-
         self.add_subscribe('+/body/init', self.handle_initialize)
         self.add_subscribe('+/body/shutdown', self.handle_shutdown)
         self.add_subscribe('+/body/stop', self.handle_force_stop)
@@ -35,11 +33,7 @@ class Body(NodeBase):
         self.add_subscribe('+/body/head/antenna/zero', self.handle_wave_arm)
         self.add_subscribe('+/body/right_arm/zero', self.handle_wiggle_antennas)
 
-        print("###2d")
-
         self.state = ActionQueue.RUNNING
-
-        print("###2e - running: ", self.running)
 
     def initialize(self):
         # move to the stop state for now
@@ -59,12 +53,10 @@ class Body(NodeBase):
         # only set the status to RUNNING after everything has been initialized
         self.state = ActionQueue.RUNNING
 
-        print("###1")
         self.state = ActionQueue.IDLE
         self.action_queue = ActionQueue(self)
 
         self.action_queue.run()
-        print("###2")
 
     def handle_initialize(self, client=None, userdata=None, message=None):
         self.initialize()
@@ -125,7 +117,6 @@ class Body(NodeBase):
         self.set_right_arm_compliance(compliance)
 
     def move_antennas_to_zero(self, client=None, userdata=None, message=None):
-        print("###move_antennas_to_zero - 1")
         self.set_head_compliance(False)
 
         for m in self.reachy.head.motors:
@@ -133,10 +124,7 @@ class Body(NodeBase):
 
         self.set_head_compliance(True)
 
-        print("###move_antennas_to_zero - 2")
-
     def move_right_arm_to_zero(self, client=None, userdata=None, message=None):
-        print("###move_right_arm_to_zero - 1")
         self.set_right_arm_compliance(False)
 
         self.reachy.goto({
@@ -151,8 +139,6 @@ class Body(NodeBase):
         }, duration=3, wait=True)
 
         self.set_right_arm_compliance(True)
-
-        print("###move_right_arm_to_zero - 2")
 
     def move_all_to_zero(self):
         self.move_antennas_to_zero()
@@ -263,8 +249,6 @@ class Body(NodeBase):
 
     def make_wiggle_antennas(self):
         def wiggle_antennas():
-            print("###adding wiggle to queue")
-
             self.set_head_compliance(False)
 
             for m in self.reachy.head.motors:
@@ -300,7 +284,6 @@ class Body(NodeBase):
         return wiggle_antennas
 
     def handle_wiggle_antennas(self, client=None, userdata=None, message=None):
-        print("###handle_wiggle_antennas")
         self.action_queue.add(self.make_wiggle_antennas())
 
 def main():
