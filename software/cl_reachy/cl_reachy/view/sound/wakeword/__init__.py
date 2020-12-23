@@ -39,7 +39,7 @@ class WakeWord(object):
 
         payload = say_msg.to_json()
 
-        self.publish("console/say/request", payload=payload)
+        self.publish("wakeword/say/request", payload=payload)
 
     def get_time_greeting(self):
         now = datetime.now().astimezone(get_localzone())
