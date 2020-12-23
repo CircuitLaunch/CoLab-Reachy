@@ -6,7 +6,7 @@ import time
 from ...node import NodeBase
 from reachy import Reachy, parts
 from .action import ActionQueue
-from .patch import patch_head
+from .patch import patch_head, patch_right_arm
 
 REACHY_SIM = os.environ['REACHY_SIM'] if 'REACHY_SIM' in os.environ.keys() else 0
 
@@ -15,14 +15,14 @@ class Body(NodeBase):
                     username=None, password=None, subscribe_dict={}, run_sleep=0.1):
         super().__init__(node_name, host, port, username, password, subscribe_dict, run_sleep)
 
-        self.io = "ws"
-        if REACHY_SIM == 0:
-            self.io = '/dev/ttyUSB*'
+        self.io = '/dev/ttyUSB*'
 
         if platform.uname().machine == 'armv7l':
             # If it's 'armv7l', assume that it's the raspberry pi 4 on the real Reachy.
             # Patch the offsets and don't load the orbita.
+            self.io = "ws"
             parts.Head = patch_head(parts.Head)
+            parts.RightArm = patch_right_arm(parts.RightArm)
 
         self.reachy = Reachy(head=parts.Head(io=self.io), right_arm=parts.RightArm(io='ws', hand='force_gripper'),)
 

@@ -1,25 +1,43 @@
-
-
 def patch_head(head_cls):
-    
-        # if it's 'armv7l', assume that it's the raspberry pi 4 on reachy
-        head_cls.dxl_motors = OrderedDict([
-            ('left_antenna', {
-                'id': 30, 'offset': 26.0, 'orientation': 'direct',
-                'angle-limits': [-150, 150],
-            }),
-            ('right_antenna', {
-                'id': 31, 'offset': 90.0, 'orientation': 'direct',
-                'angle-limits': [-150, 150],
-            }),
-        ])
+    # if it's 'armv7l', assume that it's the raspberry pi 4 on reachy
+    head_cls.dxl_motors = OrderedDict([
+        ('left_antenna', {
+            'id': 30, 'offset': 26.0, 'orientation': 'direct',
+            'angle-limits': [-150, 150],
+        }),
+        ('right_antenna', {
+            'id': 31, 'offset': 90.0, 'orientation': 'direct',
+            'angle-limits': [-150, 150],
+        }),
+    ])
 
-        head_cls.__init__(self, io, default_camera='right'):
-            """Create new Head part."""
-            ReachyPart.__init__(self, name='head', io=io)
+    head_cls.__init__(self, io, default_camera='right'):
+        """Create new Head part."""
+        ReachyPart.__init__(self, name='head', io=io)
 
-            #self.neck = self.create_orbita_actuator('neck', Head.orbita_config)
-            self.attach_dxl_motors(Head.dxl_motors)
-            #self.camera = self.io.find_dual_camera(default_camera)
+        #self.neck = self.create_orbita_actuator('neck', Head.orbita_config)
+        self.attach_dxl_motors(Head.dxl_motors)
+        #self.camera = self.io.find_dual_camera(default_camera)
 
     return head_cls
+
+def patch_right_arm(arm_cls):
+    arm_cls.dxl_motors = OrderedDict([
+        ('shoulder_pitch', {
+            'id': 10, 'offset': 90.0, 'orientation': 'indirect',
+            'angle-limits': [-180, 60],
+            'link-translation': [0, -0.19, 0], 'link-rotation': [0, 1, 0],
+        }),
+        ('arm_yaw', {
+            'id': 12, 'offset': 0.0, 'orientation': 'indirect',
+            'angle-limits': [-90, 90],
+            'link-translation': [0, 0, 0], 'link-rotation': [0, 0, 1],
+        }),
+        ('elbow_pitch', {
+            'id': 13, 'offset': 0.0, 'orientation': 'indirect',
+            'angle-limits': [0, 125],
+            'link-translation': [0, 0, -0.28], 'link-rotation': [0, 1, 0],
+        }),
+    ])
+
+    return arm_cls
