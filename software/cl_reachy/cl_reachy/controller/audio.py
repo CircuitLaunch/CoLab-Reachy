@@ -1,12 +1,13 @@
 import threading
 from ..node import NodeBase
 from ..view.sound.threshold import Threshold
-from ..view.sound.wakeword.wakeword import WakeWord
-from ..model.messages import AudioInputStateMessage, ThresholdStartMessage, WakeWordStartMessage
+from ..view.sound.wakeword import WakeWord
+from ..view.sound.speechrecognition import SpeechRecognition
+from ..model.messages import AudioInputStateMessage, HeardMessage, ThresholdStartMessage, WakeWordStartMessage
 
 THRESHOLD = Threshold.__name__
-RECOGNITION = "Recognition"
-WAKEWORD = "WakeWord"
+RECOGNITION = SpeechRecognition.__name__
+WAKEWORD = WakeWord.__name__
 
 class AudioInputController(NodeBase):
     def __init__(self, node_name="audioinput", host="127.0.0.1", port=1883,
@@ -82,10 +83,33 @@ class AudioInputController(NodeBase):
             self.mic_owner = None
 
     def handle_speech_recognition_start(self, client, userdata, message):
-         pass
+        if self.is_busy:
+            if threshold_start_msg.force:
+                # force stop
+                self.stop()
+            else:
+                # the mic is busy. don't start. just publish the state
+                self.publish_state()
+                return
+
+        self.mic_owner = SpeechRecognition()
+
+        def heard_callback(corrected_time, transcript):
+            heard_msg = HeardMessage(corrected_time, transcript)
+            self.publish("audioinput/heard/response", heard_msg.to_json())
+
+        self.publish_state()
+
+        def start():
+            self.mic_owner.start(heard_callback=heard_callback, final_callback=self.completed)
+
+        t = threading.Thread(target=start)
+        t.start()
 
     def handle_speech_recognition_stop(self, client, userdata, message):
-        pass
+        if self.mic_owner_name == RECOGNITION:
+            self.mic_owner.stop()
+            self.mic_owner = None
 
     def handle_wakeword_start(self, client, userdata, message):
         _message = str(message.payload.decode("utf-8"))
@@ -103,10 +127,17 @@ class AudioInputController(NodeBase):
         wakeword = WakeWord(publish=self.publish, sensitivity=self.wakeword_sensitivity)
         self.mic_owner = wakeword
 
-        def set_not_busy():
+        def callback():
+            self.publish("audio/wakeword/heard")
             self.mic_owner = None
 
-        wakeword.handle_wakeword_start(wakeword_start_msg.sensitivity, callback=set_not_busy)
+        self.publish_state()
+
+        def start():
+            wakeword.handle_wakeword_start(wakeword_start_msg.sensitivity, callback=set_not_busy)
+
+        t = threading.Thread(target=start)
+        t.start()
 
     def handle_wakeword_stop(self, client, userdata, message):
         if self.mic_owner == WAKEWORD:

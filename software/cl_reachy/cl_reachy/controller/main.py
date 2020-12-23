@@ -4,6 +4,7 @@ from ..model.messages import SayMessage, ThresholdStartMessage
 START = "start"
 IDLE = "idle"
 SCANNING = "scanning"
+WELCOME = "welcome"
 GREET = "greet"
 INTERACT = "interact"
 
@@ -17,6 +18,7 @@ class MainController(NodeBase):
         self.add_subscribe("+/threshold/triggered", self.handle_threshold_triggered)
         self.add_subscribe("+/someonethere", self.handle_someone_there)
         self.add_subscribe("+/noonethere", self.handle_no_one_there)
+        self.add_subscribe("+/wakeword/heard", self.handle_wakeword_heard)
 
     def on_connect(self, client, userdata, flags, rc):
         super().on_connect(client, userdata, flags, rc)
@@ -32,9 +34,9 @@ class MainController(NodeBase):
     def do_start(self, client=None, userdata=None, message=None):
         threshold_start_msg = ThresholdStartMessage(threshold="+1000", num=1)
         payload = threshold_start_msg.to_json()
-        self.publish("maincontroller/threshold/start", payload)
+        self.publish("main/start", payload)
 
-        self.publish("maincontroller/facialrecognition/init")
+        self.publish("main/facialrecognition/init")
 
         self.state = IDLE
 
@@ -52,23 +54,32 @@ class MainController(NodeBase):
         if self.state in [SCANNING, GREET, INTERACT]:
             self.do_start(client, userdata, message)
 
-    def do_greet(self):
+    def do_welcome(self):
         self.say("Welcome to Circuit Launch")
-        self.publish("console/body/right_arm/wave")
-        self.publish("console/body/head/antenna/wiggle")
+        self.publish("main/body/right_arm/wave")
+        self.publish("main/body/head/antenna/wiggle")
 
-        self.state = GREET
+        self.state = WELCOME
 
     def handle_someone_there(self, client, userdata, message):
         if self.state == SCANNING:
+            self.do_welcome()
+
+        if self.state in [WELCOME, INTERACT]:
             self.do_greet()
 
-        if self.state in [GREET, INTERACT]:
-            self.do_interact(client, userdata, message)
+    def do_greet(self):
+        self.publish("main/body/head/antenna/wiggle")
+        self.publish("main/wakeword/start")
+
+        self.state = GREET
+
+    def handle_wakeword_heard(self, client, userdata, message):
+        if self.state == WELCOME:
+            self.do_interact()
 
     def do_interact(self, client, userdata, message):
-        self.publish("console/body/head/antenna/wiggle")
-        self.publish("console/wakeword/start")
+        self.publish("main/speechrecognition/start")
 
 def main():
     node = MainController("maincontroller")

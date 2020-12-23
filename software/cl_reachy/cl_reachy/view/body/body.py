@@ -1,10 +1,12 @@
 import os
 import numpy as np
+import platform
 import time
 #from . import config
 from ...node import NodeBase
 from reachy import Reachy, parts
 from .action import ActionQueue
+from .patch import patch_head
 
 REACHY_SIM = os.environ['REACHY_SIM'] if 'REACHY_SIM' in os.environ.keys() else 0
 
@@ -16,6 +18,11 @@ class Body(NodeBase):
         self.io = "ws"
         if REACHY_SIM == 0:
             self.io = '/dev/ttyUSB*'
+
+        if platform.uname().machine == 'armv7l':
+            # If it's 'armv7l', assume that it's the raspberry pi 4 on the real Reachy.
+            # Patch the offsets and don't load the orbita.
+            parts.Head = patch_head(parts.Head)
 
         self.reachy = Reachy(head=parts.Head(io=self.io), right_arm=parts.RightArm(io='ws', hand='force_gripper'),)
 

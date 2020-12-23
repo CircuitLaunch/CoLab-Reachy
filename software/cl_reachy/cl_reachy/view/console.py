@@ -19,7 +19,11 @@ class Console(NodeBase):
             "sample_motion_head": self.handle_sample_motion_head,
             "sample_motion_orbita": self.handle_sample_motion_orbita,
             "sample_motion_right_arm": self.handle_sample_motion_right_arm,
+
+            # audio in
             "threshold_start": self.handle_threshold_start,
+            "wakeword_start": self.handle_start_wakeword,
+            "speech_recogn_start": self.handle_speech_recogn_start,
 
             # body
             "body_init": self.handle_body_init,
@@ -29,7 +33,6 @@ class Console(NodeBase):
             "wiggle": self.handle_wiggle_antennas,
             "move_antennas_to_zero": self.handle_move_antennas_to_zero,
             "move_right_arm_to_zero": self.handle_move_right_arm_to_zero,
-            "wakeword_start": self.handle_start_wakeword,
         }
         self.command_dict.update(_command_dict)
 
@@ -42,7 +45,11 @@ class Console(NodeBase):
             "sample_motion_head": "move the head",
             "sample_motion_orbita": "move the orbita",
             "sample_motion_right_arm": "move the right arm",
+
+            # audio in
             "threshold_start": "start threshold",
+            "wakeword_start": "start wakeword",
+            "speech_recogn_start": "start speech recognition",
 
             # body
             "body_init": "init body",
@@ -52,7 +59,6 @@ class Console(NodeBase):
             "wiggle": "wiggle antennas",
             "move_antennas_to_zero": "move head to zero",
             "move_right_arm_to_zero": "move_right_arm_to_zero",
-            "wakeword_start": "start wakeword",
         }
         self.command_desc_dict.update(_command_desc_dict)
 
@@ -126,6 +132,9 @@ class Console(NodeBase):
     def handle_start_wakeword(self, command_input):
         wakeword_start_msg = WakeWordStartMessage()
         self.publish("console/wakeword/start", wakeword_start_msg.to_json())
+
+    def handle_speech_recogn_start(self, command_input):
+        self.publish("console/speechrecognition/start")
 
 def main():
     node = Console("console")
