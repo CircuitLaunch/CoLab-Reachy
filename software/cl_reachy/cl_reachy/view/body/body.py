@@ -151,6 +151,7 @@ class Body(NodeBase):
         self.move_antennas_to_zero()
         self.move_right_arm_to_zero()
 
+    """
     def make_wave_arm(self):
         def wave_arm():
             self.set_right_arm_compliance(False)
@@ -207,6 +208,65 @@ class Body(NodeBase):
             self.set_right_arm_compliance(True)
 
         return wave_arm
+    """
+
+    def make_wave_arm(self):
+        def wave_arm():
+            self.set_right_arm_compliance(False)
+
+            self.move_right_arm_to_zero()
+
+            # Moving arm and hand into position
+            pos_RA = {
+                'right_arm.shoulder_pitch': 0, #-20
+                #'right_arm.shoulder_roll': 0, # -10
+                'right_arm.arm_yaw': -60, # -10
+                'right_arm.elbow_pitch': -90, # -120
+                'right_arm.hand.forearm_yaw': -60, # 0
+                'right_arm.hand.wrist_pitch': 0, # 0
+                'right_arm.hand.wrist_roll': -30, # 0
+                'right_arm.hand.gripper': 0, # 0
+            }
+
+            # Loop Hand Wave
+            pos_RB = {
+                'right_arm.shoulder_pitch': 0,
+                #'right_arm.shoulder_roll': 0,
+                'right_arm.arm_yaw': -60,
+                'right_arm.elbow_pitch': -90,
+                'right_arm.hand.forearm_yaw': -60,
+                'right_arm.hand.wrist_pitch': 0,
+                'right_arm.hand.wrist_roll': 30, # 40
+                'right_arm.hand.gripper': 0,
+            }
+
+            pos_RC = {
+                'right_arm.shoulder_pitch': 0,
+                #'right_arm.shoulder_roll': 0,
+                'right_arm.arm_yaw': -60,
+                'right_arm.elbow_pitch': -90,
+                'right_arm.hand.forearm_yaw': -60,
+                'right_arm.hand.wrist_pitch': 0,
+                'right_arm.hand.wrist_roll': -30, # -40
+                'right_arm.hand.gripper': 0,
+            }
+
+            # rehome start and finish, with loop
+            self.reachy.head.left_antenna.goto(0, duration = 2, wait = True)
+            self.reachy.head.right_antenna.goto(0, duration = 2, wait = True)
+            self.reachy.goto(goal_positions = zero_posR, duration=2, wait=True)
+            time.sleep(2)
+
+            self.reachy.goto(goal_positions = pos_RA, duration = 2.5, wait = True)
+            #reachy.head.left_antenna.goto(-45, duration = 2, wait = False) # depends on actual calibration - may need opp sign
+            for m in range(3):
+                self.reachy.goto(goal_positions = pos_RB, duration = 1, wait = True)
+                self.reachy.goto(goal_positions = pos_RC, duration = 1, wait = True)
+                time.sleep(1)
+
+            #reachy.head.left_antenna.goto(0, duration = 2, wait = False)
+            self.reachy.goto(goal_positions = zero_posR, duration = 2, wait=True)
+            time.sleep(2)
 
     def handle_wave_arm(self, client=None, userdata=None, message=None):
         self.action_queue.add(self.make_wave_arm())

@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 def patch_head(head_cls):
     # if it's 'armv7l', assume that it's the raspberry pi 4 on reachy
     head_cls.dxl_motors = OrderedDict([
@@ -11,13 +13,15 @@ def patch_head(head_cls):
         }),
     ])
 
-    head_cls.__init__(self, io, default_camera='right'):
+    def __init__(self, io, default_camera='right'):
         """Create new Head part."""
-        ReachyPart.__init__(self, name='head', io=io)
+        parts.part.ReachyPart.__init__(self, name='head', io=io)
 
         #self.neck = self.create_orbita_actuator('neck', Head.orbita_config)
-        self.attach_dxl_motors(Head.dxl_motors)
+        self.attach_dxl_motors(parts.Head.dxl_motors)
         #self.camera = self.io.find_dual_camera(default_camera)
+
+    head_cls.__init__ = __init__
 
     return head_cls
 
@@ -41,3 +45,5 @@ def patch_right_arm(arm_cls):
     ])
 
     return arm_cls
+
+def patch_luo_io(luo_io):
