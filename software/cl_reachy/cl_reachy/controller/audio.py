@@ -1,4 +1,5 @@
 import threading
+import time
 from ..node import NodeBase
 from ..view.sound.threshold import Threshold
 from ..view.sound.wakeword import WakeWord
@@ -50,9 +51,10 @@ class AudioInputController(NodeBase):
         self.publish("audioinput/state", msg.to_json())
 
     def completed(self):
-        self.mic_owner = None
         self.publish_state()
-
+        time.sleep(1)
+        self.mic_owner = None
+        
     def handle_threshold_start(self, client, userdata, message):
         _message = str(message.payload.decode("utf-8"))
         threshold_start_msg = ThresholdStartMessage.from_json(_message)
@@ -66,8 +68,10 @@ class AudioInputController(NodeBase):
                 self.publish_state()
                 return
 
-        self.mic_owner = Threshold(action="exec-stop", threshold=threshold_start_msg.threshold,
-                                    num=int(threshold_start_msg.num), publish=self.publish)
+        
+        #self.mic_owner = Threshold(action="exec-stop", threshold=threshold_start_msg.threshold,
+        self.mic_owner = Threshold(action="exec-stop", threshold="+100",
+                                    num=int(threshold_start_msg.num), publish=self.publish, verbose=True)
 
         self.publish_state()
 
@@ -113,8 +117,13 @@ class AudioInputController(NodeBase):
 
     def handle_wakeword_start(self, client, userdata, message):
         _message = str(message.payload.decode("utf-8"))
-        wakeword_start_msg = WakeWordStartMessage.from_json(_message)
+        print("###handle_wakeword_start: ", _message)
+        #wakeword_start_msg = WakeWordStartMessage.from_json(_message)
 
+        if self.is_busy:
+            self.stop()
+
+        """
         if self.is_busy:
             if wakeword_start_msg.force:
                 # force stop
@@ -123,6 +132,7 @@ class AudioInputController(NodeBase):
                 # the mic is busy. don't start. just publish the state
                 self.publish_state()
                 return
+        """
 
         wakeword = WakeWord(publish=self.publish, sensitivity=self.wakeword_sensitivity)
         self.mic_owner = wakeword
@@ -134,7 +144,8 @@ class AudioInputController(NodeBase):
         self.publish_state()
 
         def start():
-            wakeword.handle_wakeword_start(wakeword_start_msg.sensitivity, callback=set_not_busy)
+            #wakeword.handle_wakeword_start(wakeword_start_msg.sensitivity, callback=set_not_busy)
+            wakeword.handle_wakeword_start(0.5, callback=callback)
 
         t = threading.Thread(target=start)
         t.start()
@@ -149,6 +160,7 @@ class AudioInputController(NodeBase):
             self.mic_owner.stop()
             self.mic_owner = None
 
+        print("###stop: ", type(self.mic_owner))
         super().stop()
 
 def main():

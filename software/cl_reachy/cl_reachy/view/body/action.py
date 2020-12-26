@@ -16,7 +16,8 @@ class ActionQueue(object):
             while self.parent.running == True and self.parent.state != ActionQueue.STOPPED:
                 if self.parent.state == ActionQueue.RUNNING and self.len > 0:
                     curr_action = self.remove()
-                    curr_action()
+                    if curr_action is not None:
+                        curr_action()
                 sleep(0.25)
 
         return thread_fnc
