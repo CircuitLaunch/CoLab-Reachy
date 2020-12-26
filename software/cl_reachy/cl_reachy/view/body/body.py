@@ -6,7 +6,7 @@ import time
 from ...node import NodeBase
 from reachy import Reachy, parts
 from .action import ActionQueue
-from .patch import patch_head, patch_right_arm
+from .patch import patch_head, patch_right_arm, patch_force_gripper
 
 REACHY_SIM = os.environ['REACHY_SIM'] if 'REACHY_SIM' in os.environ.keys() else 0
 
@@ -15,16 +15,21 @@ class Body(NodeBase):
                     username=None, password=None, subscribe_dict={}, run_sleep=0.1):
         super().__init__(node_name, host, port, username, password, subscribe_dict, run_sleep)
 
-        self.io = '/dev/ttyUSB*'
-
+        """
+        self.io = "ws"
         if platform.uname().machine == 'armv7l':
             # If it's 'armv7l', assume that it's the raspberry pi 4 on the real Reachy.
             # Patch the offsets and don't load the orbita.
-            self.io = "ws"
+            self.io = '/dev/ttyUSB*'
             parts.Head = patch_head(parts.Head)
             parts.RightArm = patch_right_arm(parts.RightArm)
+        """
+        self.io = '/dev/ttyUSB*'
+        parts.Head = patch_head(parts.Head)
+        parts.RightArm = patch_right_arm(parts.RightArm)
+        parts.arm.RightForceGripper = patch_force_gripper(parts.arm.RightForceGripper)
 
-        self.reachy = Reachy(head=parts.Head(io=self.io), right_arm=parts.RightArm(io='ws', hand='force_gripper'),)
+        self.reachy = Reachy(head=parts.Head(io=self.io), right_arm=parts.RightArm(io=self.io, hand='force_gripper'),)
 
         self.running = True
 
@@ -37,7 +42,7 @@ class Body(NodeBase):
         self.add_subscribe('+/body/stop', self.handle_force_stop)
         self.add_subscribe('+/body/right_arm/wave', self.handle_wave_arm)
         self.add_subscribe('+/body/head/antenna/wiggle', self.handle_wiggle_antennas)
-        self.add_subscribe('+/body/head/antenna/zero', self.handle_wave_arm)
+        self.add_subscribe('+/body/head/antenna/zero', self.move_antennas_to_zero)
         self.add_subscribe('+/body/right_arm/zero', self.handle_wiggle_antennas)
 
         self.state = ActionQueue.RUNNING
@@ -124,19 +129,22 @@ class Body(NodeBase):
         self.set_right_arm_compliance(compliance)
 
     def move_antennas_to_zero(self, client=None, userdata=None, message=None):
+        print("###move_antennas_to_zero")
         self.set_head_compliance(False)
 
         for m in self.reachy.head.motors:
             m.goal_position = 0
+        time.sleep(1)
 
-        self.set_head_compliance(True)
+        #self.set_head_compliance(True)
 
-    def move_right_arm_to_zero(self, client=None, userdata=None, message=None):
-        self.set_right_arm_compliance(False)
+    def move_right_arm_to_zero(self, client=None, userdata=None, message=None, set_compliance=False):
+        if set_compliance:
+            self.set_right_arm_compliance(False)
 
         self.reachy.goto({
             'right_arm.shoulder_pitch': 0,
-            'right_arm.shoulder_roll': 90,
+            #'right_arm.shoulder_roll': 90,
             'right_arm.arm_yaw': 0,
             'right_arm.elbow_pitch': 0,
             'right_arm.hand.forearm_yaw': 0,
@@ -145,7 +153,8 @@ class Body(NodeBase):
             'right_arm.hand.gripper': 0,
         }, duration=3, wait=True)
 
-        self.set_right_arm_compliance(True)
+        if set_compliance:
+            self.set_right_arm_compliance(True)
 
     def move_all_to_zero(self):
         self.move_antennas_to_zero()
@@ -209,19 +218,28 @@ class Body(NodeBase):
 
         return wave_arm
     """
-
     def make_wave_arm(self):
         def wave_arm():
+            print("###wave_arm - 1")
             self.set_right_arm_compliance(False)
 
-            self.move_right_arm_to_zero()
+            zero_posR = {
+                'right_arm.shoulder_pitch': 0,
+                #'right_arm.shoulder_roll': 0,
+                'right_arm.arm_yaw': 0,
+                'right_arm.elbow_pitch': 0,
+                'right_arm.hand.forearm_yaw': 0,
+                'right_arm.hand.wrist_pitch': 0,
+                'right_arm.hand.wrist_roll': 0,
+                'right_arm.hand.gripper': 0,
+            }
 
             # Moving arm and hand into position
             pos_RA = {
                 'right_arm.shoulder_pitch': 0, #-20
                 #'right_arm.shoulder_roll': 0, # -10
-                'right_arm.arm_yaw': -60, # -10
-                'right_arm.elbow_pitch': -90, # -120
+                'right_arm.arm_yaw': -70, # -10
+                'right_arm.elbow_pitch': -115, # -120
                 'right_arm.hand.forearm_yaw': -60, # 0
                 'right_arm.hand.wrist_pitch': 0, # 0
                 'right_arm.hand.wrist_roll': -30, # 0
@@ -232,8 +250,8 @@ class Body(NodeBase):
             pos_RB = {
                 'right_arm.shoulder_pitch': 0,
                 #'right_arm.shoulder_roll': 0,
-                'right_arm.arm_yaw': -60,
-                'right_arm.elbow_pitch': -90,
+                'right_arm.arm_yaw': -70,
+                'right_arm.elbow_pitch': -115,
                 'right_arm.hand.forearm_yaw': -60,
                 'right_arm.hand.wrist_pitch': 0,
                 'right_arm.hand.wrist_roll': 30, # 40
@@ -243,31 +261,40 @@ class Body(NodeBase):
             pos_RC = {
                 'right_arm.shoulder_pitch': 0,
                 #'right_arm.shoulder_roll': 0,
-                'right_arm.arm_yaw': -60,
-                'right_arm.elbow_pitch': -90,
+                'right_arm.arm_yaw': -70,
+                'right_arm.elbow_pitch': -115,
                 'right_arm.hand.forearm_yaw': -60,
                 'right_arm.hand.wrist_pitch': 0,
                 'right_arm.hand.wrist_roll': -30, # -40
                 'right_arm.hand.gripper': 0,
             }
 
+            print("###wave_arm - 2")
+            
             # rehome start and finish, with loop
-            self.reachy.head.left_antenna.goto(0, duration = 2, wait = True)
-            self.reachy.head.right_antenna.goto(0, duration = 2, wait = True)
+            self.reachy.head.left_antenna.goto(0, duration = 4, wait = False)
+            self.reachy.head.right_antenna.goto(0, duration = 4, wait = False)
             self.reachy.goto(goal_positions = zero_posR, duration=2, wait=True)
             time.sleep(2)
 
+            print("###wave_arm - 3")
             self.reachy.goto(goal_positions = pos_RA, duration = 2.5, wait = True)
-            #reachy.head.left_antenna.goto(-45, duration = 2, wait = False) # depends on actual calibration - may need opp sign
+            self.reachy.head.left_antenna.goto(-45, duration = 4, wait = False) # depends on actual calibration - may need opp sign
             for m in range(3):
                 self.reachy.goto(goal_positions = pos_RB, duration = 1, wait = True)
                 self.reachy.goto(goal_positions = pos_RC, duration = 1, wait = True)
                 time.sleep(1)
 
-            #reachy.head.left_antenna.goto(0, duration = 2, wait = False)
+            print("###wave_arm - 4")                
+            self.reachy.head.left_antenna.goto(0, duration = 4, wait = False)
             self.reachy.goto(goal_positions = zero_posR, duration = 2, wait=True)
             time.sleep(2)
 
+            print("###wave_arm - 5")
+            self.set_right_arm_compliance(True)
+            
+        return wave_arm    
+            
     def handle_wave_arm(self, client=None, userdata=None, message=None):
         self.action_queue.add(self.make_wave_arm())
 
@@ -320,31 +347,31 @@ class Body(NodeBase):
 
             for m in self.reachy.head.motors:
                 m.goal_position = 45
-            time.sleep(0.1)
+            time.sleep(0.5)
 
             for m in self.reachy.head.motors:
                 m.goal_position = 0
-            time.sleep(0.1)
+            time.sleep(0.5)
 
             for m in self.reachy.head.motors:
                 m.goal_position = -45
-            time.sleep(0.1)
+            time.sleep(0.5)
 
             for m in self.reachy.head.motors:
                 m.goal_position = 0
-            time.sleep(0.1)
+            time.sleep(0.5)
 
             for m in self.reachy.head.motors:
                 m.goal_position = 45
-            time.sleep(0.1)
+            time.sleep(0.5)
 
             for m in self.reachy.head.motors:
                 m.goal_position = 0
-            time.sleep(0.1)
+            time.sleep(0.5)
 
             for m in self.reachy.head.motors:
                 m.goal_position = -45
-            time.sleep(0.1)
+            time.sleep(0.5)
 
             self.set_head_compliance(False)
 

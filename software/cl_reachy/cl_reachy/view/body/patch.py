@@ -1,4 +1,6 @@
 from collections import OrderedDict
+from reachy import parts
+
 
 def patch_head(head_cls):
     # if it's 'armv7l', assume that it's the raspberry pi 4 on reachy
@@ -25,10 +27,11 @@ def patch_head(head_cls):
 
     return head_cls
 
+
 def patch_right_arm(arm_cls):
     arm_cls.dxl_motors = OrderedDict([
         ('shoulder_pitch', {
-            'id': 10, 'offset': 90.0, 'orientation': 'indirect',
+            'id': 10, 'offset': 0.0, 'orientation': 'indirect',
             'angle-limits': [-180, 60],
             'link-translation': [0, -0.19, 0], 'link-rotation': [0, 1, 0],
         }),
@@ -46,4 +49,24 @@ def patch_right_arm(arm_cls):
 
     return arm_cls
 
-def patch_luo_io(luo_io):
+def patch_force_gripper(forceGripper):
+    def __init__(self, root, io):
+        """Create a new Force Gripper Hand."""
+        parts.hand.Hand.__init__(self, root=root, io=io)
+
+        dxl_motors = OrderedDict({
+            name: dict(conf)
+            for name, conf in self.dxl_motors.items()
+        })
+
+        self.attach_dxl_motors(dxl_motors)
+
+        """
+        self._load_sensor = self.io.find_module('force_gripper')
+        self._load_sensor.offset = 4
+        self._load_sensor.scale = 10000
+        """
+        
+    forceGripper.__init__ = __init__
+    
+    return forceGripper

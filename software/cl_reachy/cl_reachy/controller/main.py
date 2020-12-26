@@ -32,15 +32,17 @@ class MainController(NodeBase):
         self.publish("maincontroller/say/request", payload=payload)
 
     def do_start(self, client=None, userdata=None, message=None):
+        print("###start")
         threshold_start_msg = ThresholdStartMessage(threshold="+1000", num=1)
         payload = threshold_start_msg.to_json()
-        self.publish("main/start", payload)
+        self.publish("main/threshold/start", payload)
 
         self.publish("main/facialrecognition/init")
 
         self.state = IDLE
 
     def do_scanning(self):
+        print("###scanning")
         # TODO: add some time settings for nobody there and somebody there
         self.publish("maincontroller/facialrecognition/start")
 
@@ -55,6 +57,7 @@ class MainController(NodeBase):
             self.do_start(client, userdata, message)
 
     def do_welcome(self):
+        print("###welcome")
         self.say("Welcome to Circuit Launch")
         self.publish("main/body/right_arm/wave")
         self.publish("main/body/head/antenna/wiggle")
@@ -69,6 +72,7 @@ class MainController(NodeBase):
             self.do_greet()
 
     def do_greet(self):
+        print("###greet")
         self.publish("main/body/head/antenna/wiggle")
         self.publish("main/wakeword/start")
 
@@ -79,6 +83,7 @@ class MainController(NodeBase):
             self.do_interact()
 
     def do_interact(self, client, userdata, message):
+        print("###interact")
         self.publish("main/speechrecognition/start")
 
 def main():
