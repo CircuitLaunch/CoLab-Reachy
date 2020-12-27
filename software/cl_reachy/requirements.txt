@@ -86,6 +86,7 @@ webencodings==0.5.1
 webrtcvad==2.0.10
 websocket-client==0.57.0
 websockets==8.1
+wheel
 widgetsnbextension==3.5.1
 zeroconf==0.28.6
 zipp==3.4.0
