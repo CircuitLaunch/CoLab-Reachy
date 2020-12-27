@@ -24,9 +24,9 @@ class SpeechSynthesis(NodeBase):
         tts.write_to_fp(fp)
         fp.flush()
 
-        #audio = AudioSegment.from_file_using_temporary_files(fp.name, format="mp3")
-        #play(audio)
-        os.system("mpg123 -a plughw:0,0 {}".format(fp.name))
+        audio = AudioSegment.from_file_using_temporary_files(fp.name, format="mp3")
+        play(audio)
+        #os.system("mpg123 -a plughw:0,0 {}".format(fp.name))
 
         fp.close()
 
