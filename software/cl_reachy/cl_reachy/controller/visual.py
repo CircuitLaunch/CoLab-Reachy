@@ -35,7 +35,6 @@ class CameraController(NodeBase):
 
         self.capture_frames = False
 
-
     def run(self):
         self.run_thread = threading.Thread(target=super().run)
         self.run_thread.start()

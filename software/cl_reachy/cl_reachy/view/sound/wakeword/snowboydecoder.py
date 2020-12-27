@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import collections
 from contextlib import contextmanager
 from ctypes import *
@@ -7,12 +5,12 @@ import logging
 import os
 import os.path
 import pathlib
-import platform
 import pyaudio
 import random
 import sys
 import time
 import wave
+from ....util import *
 
 def set_path():
     # set PYTHONPATH to use the right shared library
@@ -20,9 +18,10 @@ def set_path():
     resources = os.path.join(curr_dir, "resources")
     lib_path = os.path.join(resources, "lib")
 
-    if platform.uname().processor == 'x86_64':
+    curr_platform = get_platform()
+    if curr_platform == INTEL:
         so_path = os.path.join(lib_path, 'x86_64')
-    elif platform.uname().machine == 'armv7l':
+    elif curr_platform == RASPBERRYPI:
         so_path = os.path.join(lib_path, 'armv7l')
     else:
         raise Exception("Unsupported process")

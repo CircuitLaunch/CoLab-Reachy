@@ -7,6 +7,7 @@ from ...node import NodeBase
 from reachy import Reachy, parts
 from .action import ActionQueue
 from .patch import patch_head, patch_right_arm, patch_force_gripper
+from ...util import *
 
 REACHY_SIM = os.environ['REACHY_SIM'] if 'REACHY_SIM' in os.environ.keys() else 0
 
@@ -15,19 +16,15 @@ class Body(NodeBase):
                     username=None, password=None, subscribe_dict={}, run_sleep=0.1):
         super().__init__(node_name, host, port, username, password, subscribe_dict, run_sleep)
 
-        """
-        self.io = "ws"
-        if platform.uname().machine == 'armv7l':
-            # If it's 'armv7l', assume that it's the raspberry pi 4 on the real Reachy.
-            # Patch the offsets and don't load the orbita.
+        curr_platform = get_platform()
+        if curr_platform == INTEL:
+            self.io = "ws"
+        elif curr_platform == RASPBERRYPI:
             self.io = '/dev/ttyUSB*'
             parts.Head = patch_head(parts.Head)
             parts.RightArm = patch_right_arm(parts.RightArm)
-        """
-        self.io = '/dev/ttyUSB*'
-        parts.Head = patch_head(parts.Head)
-        parts.RightArm = patch_right_arm(parts.RightArm)
-        parts.arm.RightForceGripper = patch_force_gripper(parts.arm.RightForceGripper)
+            parts.arm.RightForceGripper = patch_force_gripper(parts.arm.RightForceGripper)
+
 
         self.reachy = Reachy(head=parts.Head(io=self.io), right_arm=parts.RightArm(io=self.io, hand='force_gripper'),)
 
@@ -270,7 +267,7 @@ class Body(NodeBase):
             }
 
             print("###wave_arm - 2")
-            
+
             # rehome start and finish, with loop
             self.reachy.head.left_antenna.goto(0, duration = 4, wait = False)
             self.reachy.head.right_antenna.goto(0, duration = 4, wait = False)
@@ -285,16 +282,16 @@ class Body(NodeBase):
                 self.reachy.goto(goal_positions = pos_RC, duration = 1, wait = True)
                 time.sleep(1)
 
-            print("###wave_arm - 4")                
+            print("###wave_arm - 4")
             self.reachy.head.left_antenna.goto(0, duration = 4, wait = False)
             self.reachy.goto(goal_positions = zero_posR, duration = 2, wait=True)
             time.sleep(2)
 
             print("###wave_arm - 5")
             self.set_right_arm_compliance(True)
-            
-        return wave_arm    
-            
+
+        return wave_arm
+
     def handle_wave_arm(self, client=None, userdata=None, message=None):
         self.action_queue.add(self.make_wave_arm())
 
