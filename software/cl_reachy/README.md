@@ -70,9 +70,9 @@ Currently interfaces with the simulator. Accepts messages for sample, preset mot
 python -m cl_reachy.view.body.body
 ```
 
-### Audio (Threshold/Wake Word)
+### Threshold
 ```bash
-python -m cl_reachy.controller.audio
+python -m cl_reachy.view.sound.threshold.threshold
 ```
 
 ### Main Controller
