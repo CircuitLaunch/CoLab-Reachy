@@ -24,6 +24,8 @@ class Console(NodeBase):
             "threshold_start": self.handle_threshold_start,
             "wakeword_start": self.handle_start_wakeword,
             "speech_recogn_start": self.handle_speech_recogn_start,
+            "deepspeek_start": self.handle_deepspeek_start,
+            "deepspeek_stop": self.handle_deepspeek_stop,
 
             # body
             "body_init": self.handle_body_init,
@@ -50,6 +52,8 @@ class Console(NodeBase):
             "threshold_start": "start threshold",
             "wakeword_start": "start wakeword",
             "speech_recogn_start": "start speech recognition",
+            "deepspeek_start": "start deepspeek",
+            "deepspeek_stop": "stop deepspeek",
 
             # body
             "body_init": "init body",
@@ -135,6 +139,12 @@ class Console(NodeBase):
 
     def handle_speech_recogn_start(self, command_input):
         self.publish("console/speechrecognition/start")
+
+    def handle_deepspeek_start(self, command_input):
+        self.publish("console/deepspeech/listen/start")
+
+    def handle_deepspeek_stop(self, command_input):
+        self.publish("console/deepspeech/listen/stop")
 
 def main():
     node = Console("console")
