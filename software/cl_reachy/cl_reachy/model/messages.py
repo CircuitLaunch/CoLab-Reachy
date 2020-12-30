@@ -28,7 +28,7 @@ class SayMessage(DataModelBase):
         return json.loads(msgJson, object_hook=SayMessage.decoder)
 
 class HeardMessage(DataModelBase):
-    def __init__(self, corrected_time, transcript):
+    def __init__(self, corrected_time=None, transcript=""):
         self.corrected_time = corrected_time
         self.transcript = transcript
 
@@ -41,9 +41,9 @@ class HeardMessage(DataModelBase):
         return json.loads(msgJson, object_hook=HeardMessage.decoder)
 
 class AudioInputStateMessage(DataModelBase):
-    def __init__(self, is_busy, mic_owner):
+    def __init__(self, is_busy, listener):
         self.is_busy = is_busy
-        self.mic_owner = mic_owner
+        self.listener = listener
 
     @staticmethod
     def decoder(msgDict):
