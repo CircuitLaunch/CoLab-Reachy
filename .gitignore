@@ -10,3 +10,4 @@ software/cl_reachy/env
 
 software/cl_reachy/cl_reachy/view/sound/speechrecognition/resources/reachySTT-40758913c356.json
 software/cl_reachy/cl_reachy/view/sound/speechrecognition/resources/reachySTT.json
+software/cl_reachy/cl_reachy/view/sound/mds/resources/deepspeech-0.9.3-models.scorer
