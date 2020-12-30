@@ -22,10 +22,11 @@ apt clean
 # swig
 apt-get install -y swig
 
-# sound dev
+# sound 
 apt-get install libpulse-dev -y
 apt-get install libasound2-dev -y
 apt-get install pavucontrol -y
+apt-get install libmpg123-dev mpg123 -y
 
 # coral tpu
 echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | tee /etc/apt/sources.list.d/coral-edgetpu.list
