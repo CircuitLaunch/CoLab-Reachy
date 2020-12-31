@@ -8,6 +8,6 @@ software/frames/*.jpg
 software/cl_reachy/env
 *.pyc
 
-software/cl_reachy/cl_reachy/view/sound/speechrecognition/resources/reachySTT-40758913c356.json
-software/cl_reachy/cl_reachy/view/sound/speechrecognition/resources/reachySTT.json
-software/cl_reachy/cl_reachy/view/sound/mds/resources/deepspeech-0.9.3-models.scorer
+reachySTT-40758913c356.json
+reachySTT.json
+deepspeech-0.9.3-models.scorer
