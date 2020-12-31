@@ -55,13 +55,32 @@ python -m cl_reachy.view.console
 ### Camera
 Takes a picture from your webcam.
 ```bash
-python -m cl_reachy.controller.visual
+python -m cl_reachy.controller.visual.camera.main --env=[reachy|dev]
+```
+
+If you are using VirtualBox, you will need to set up the webcam passthru:
+https://docs.oracle.com/en/virtualization/virtualbox/6.0/admin/webcam-passthrough.html
+For Mac OS:
+List available webcams
+```bash
+VBoxManage list webcams
+```
+You should see something like:
+```bash
+$ VBoxManage list webcams
+Video Input Devices: 1
+.1 "FaceTime HD Camera"
+CC2617300VLG1HNBK
+```
+To attach the FaceTime HD Camera, do:
+```bash
+VBoxManage controlvm reachy-dev webcam attach .1
 ```
 
 ### Speech Synthesis
 Says the message from a say message.
 ```bash
-python -m cl_reachy.view.sound.speechsynthesis
+python -m cl_reachy.view.sound.speechsynthesis.main --env=[reachy|dev]
 ```
 
 ### Body

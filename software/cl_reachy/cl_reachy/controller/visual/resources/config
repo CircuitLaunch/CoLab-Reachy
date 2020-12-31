@@ -1,0 +1,5 @@
+[reachy]
+show_frames = 0
+
+[dev]
+show_frames = 1

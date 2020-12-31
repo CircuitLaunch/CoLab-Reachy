@@ -1,0 +1,5 @@
+[reachy]
+ouput_device_index = 1
+
+[dev]
+ouput_device_index = 0

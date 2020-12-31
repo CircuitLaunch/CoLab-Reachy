@@ -4,19 +4,19 @@ from io import BytesIO
 from pydub import AudioSegment
 from pydub.playback import play
 from tempfile import NamedTemporaryFile
-from ...node import NodeBase
-from ...model.messages import SayMessage
-from ...util import is_valid_input_device
+from ....node import NodeBase
+from ....model.messages import SayMessage
+from ....util import is_valid_input_device
 
 class SpeechSynthesis(NodeBase):
     def __init__(self, node_name="speechsynthesis", host="127.0.0.1", port=1883,
                     username=None, password=None, subscribe_dict={}, run_sleep=0.1,
-                    input_device_index=1):
+                    output_device_index=1):
         super().__init__(node_name, host, port, username, password, subscribe_dict, run_sleep)
 
-        if not is_valid_input_device(input_device_index):
-            raise Exception("Invalid input device: {}".format(input_device_index))
-        self.input_device_index = input_device_index
+        if not is_valid_input_device(output_device_index):
+            raise Exception("Invalid input device: {}".format(output_device_index))
+        self.output_device_index = output_device_index
 
         self.add_subscribe('+/say/request', self.handle_say)
 
@@ -32,7 +32,7 @@ class SpeechSynthesis(NodeBase):
 
         #audio = AudioSegment.from_file_using_temporary_files(fp.name, format="mp3")
         #play(audio)
-        os.system("mpg123 -a plughw:{},0 {}".format(self.input_device_index, fp.name))
+        os.system("mpg123 -a plughw:{},0 {}".format(self.output_device_index, fp.name))
 
         fp.close()
 
@@ -47,11 +47,4 @@ class SpeechSynthesis(NodeBase):
         except Exception as ex:
             print("ERROR - handle_say: {}".format(ex))
 
-def main():
-    node = SpeechSynthesis("speechsynthesis")
-    node.run()
-
-if __name__ == "__main__":
-    # execute only if run as a script
-    main()
 

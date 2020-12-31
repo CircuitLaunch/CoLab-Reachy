@@ -2,17 +2,19 @@ import cv2
 import threading
 import time
 from datetime import datetime
-from ..node import NodeBase
-from ..view.cv.facialrecogn import FacialRecognition
-from ..model.messages import SayMessage
+from ...node import NodeBase
+from ...view.cv.facialrecogn import FacialRecognition
+from ...model.messages import SayMessage
 
 SOMEONE_THERE = 1
 NO_ONE_THERE = 0
 
 class CameraController(NodeBase):
     def __init__(self, node_name="camera", host="127.0.0.1", port=1883,
-                    username=None, password=None, subscribe_dict={}, run_sleep=0.1):
+                    username=None, password=None, subscribe_dict={}, run_sleep=0.1,
+                    show_frames=1):
         super().__init__(node_name, host, port, username, password, subscribe_dict, run_sleep)
+        self.show_frames = show_frames
 
         self.init()
 
@@ -54,6 +56,7 @@ class CameraController(NodeBase):
         exit()
 
     def process_someone_there(self):
+        print("someone is here  ")
         if self.state == NO_ONE_THERE:
             self.state = SOMEONE_THERE
 
@@ -70,6 +73,7 @@ class CameraController(NodeBase):
         return (now - self.last_time_someone_seen).seconds
 
     def process_no_one_there(self):
+        print("no one is there")
         how_long_no_one_seen = self.how_long_no_one_seen()
 
         if how_long_no_one_seen is not None and how_long_no_one_seen > self.last_time_no_one_seen_threshold:
@@ -77,9 +81,10 @@ class CameraController(NodeBase):
             self.publish("camera/noonethere")
 
     def process_frame(self):
+        print("processing frames...")
         cnt = 0
         last_num_of_people = 0
-        while self.capture_frames:
+        while self.running and self.capture_frames:
             ret, frame = self.vid.read()
             if not ret:
                 continue
@@ -88,15 +93,19 @@ class CameraController(NodeBase):
             #self.publish("camera/frame", frame_data.to_json())
             #print(frame_data.to_json())
 
-            # imshow needs to be run in the main thread
-            cv2.imshow('frame', frame)
+            if self.show_frames:
+                # imshow needs to be run in the main thread
+                cv2.imshow('frame', frame)
 
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):
-                self.capture_frames = False
-                break
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord('q'):
+                    self.capture_frames = False
+                    break
+            else:
+                time.sleep(0.1)
 
             cnt += 1
+
 
             num_of_people = frame_data.num_of_people
             if num_of_people > 0:
@@ -123,10 +132,3 @@ class CameraController(NodeBase):
         print("###handle_facial_recognition_stop")
         self.capture_frames = False
 
-def main():
-    node = CameraController("camera")
-    node.run()
-
-if __name__ == "__main__":
-    # execute only if run as a script
-    main()
