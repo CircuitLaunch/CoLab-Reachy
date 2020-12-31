@@ -8,7 +8,7 @@ import time
 from google.cloud import speech
 import pyaudio
 from six.moves import queue
-from ....node import NodeBase
+from .....node import NodeBase
 
 # Audio recording parameters
 STREAMING_LIMIT = 240000  # 4 minutes
@@ -27,9 +27,11 @@ def get_current_time():
 class ResumableMicrophoneStream:
     """Opens a recording stream as a generator yielding the audio chunks."""
 
-    def __init__(self, rate, chunk_size):
+    def __init__(self, rate, chunk_size, input_device_index=1):
         self._rate = rate
         self.chunk_size = chunk_size
+        self.input_device_index = input_device_index
+
         self._num_channels = 1
         self._buff = queue.Queue()
         self.closed = True
@@ -54,6 +56,7 @@ class ResumableMicrophoneStream:
             # This is necessary so that the input device's buffer doesn't
             # overflow while the calling thread makes network requests, etc.
             stream_callback=self._fill_buffer,
+            input_device_index=self.input_device_index,
         )
 
     def __enter__(self):
@@ -215,7 +218,9 @@ def listen_print_loop(responses, stream, callback=None):
             stream.last_transcript_was_final = False
 
 class SpeechRecognition(object):
-    def __init__(self):
+    def __init__(self, input_device_index=1):
+        self.input_device_index = input_device_index
+
         # TODO: maybe move these files to a better location
         self.curr_dir = pathlib.Path(__file__).parent.absolute()
         print(self.curr_dir)
@@ -238,7 +243,8 @@ class SpeechRecognition(object):
         self.mic_manager = None
 
     def start(self, heard_callback=None, final_callback=None):
-        self.mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE)
+        self.mic_manager = ResumableMicrophoneStream(SAMPLE_RATE, CHUNK_SIZE,
+                                                        input_device_index=self.input_device_index)
         print(self.mic_manager.chunk_size)
 
         with self.mic_manager as stream:
@@ -277,3 +283,4 @@ class SpeechRecognition(object):
             final_callback()
     def stop(self):
         stream.closed = True
+

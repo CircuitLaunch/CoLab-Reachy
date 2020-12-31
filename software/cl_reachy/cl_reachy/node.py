@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 import re
 import random
 import signal
@@ -51,6 +52,12 @@ class NodeBase(object):
 
         return handle_stop
 
+    def make_handle_segfault(self):
+        def handle_segfault(sig, frame):
+            pass
+
+        return handle_segfault
+
     def handle_help(self, command_input):
         print("Commands: ")
         print("=========")
@@ -62,6 +69,17 @@ class NodeBase(object):
 
     def handle_quit(self, command_input=None):
         self.running = False
+
+    def is_thread_running(self, thread_name):
+        for thread in threading.enumerate():
+            if thread.name == thread_name:
+                return True
+
+        return False
+
+    def print_threads(self):
+        for i, thread in enumerate(threading.enumerate(), start=1):
+            print("{}: {}".format(i, thread.name))
 
     def run_mqtt(self):
         self.client.on_connect = self.make_on_connect()
@@ -100,8 +118,8 @@ class NodeBase(object):
 
         self.running = True
         threads = []
-        threads.append(threading.Thread(target=self.run_mqtt))
-        threads.append(threading.Thread(target=self.run_console))
+        threads.append(threading.Thread(name="mqtt client", target=self.run_mqtt))
+        threads.append(threading.Thread(name="console", target=self.run_console))
 
         for thread in threads:
             thread.start()
@@ -138,7 +156,7 @@ class NodeBase(object):
         self.client.loop_start()
 
     def loop_stop(self):
-        self.client.loop_stop()
+        self.client.loop_stop(True)
 
     def node_stop(self):
         self.running = False
@@ -186,7 +204,7 @@ class NodeBase(object):
         return on_log
 
     def on_disconnect(self, client, userdata, rc):
-        if rc != 0:
+        if rc != 0 and self.running:
             print("Unexpected MQTT disconnection. Will auto-reconnect")
 
     def make_on_disconnect(self):

@@ -97,11 +97,12 @@ class WakeWordListener(object):
 class WakeWord(NodeBase):
     def __init__(self, node_name="wakeword", host="127.0.0.1", port=1883,
                     username=None, password=None, subscribe_dict={}, run_sleep=0.1,
-                    wakeword_sensitivity=0.5):
+                    wakeword_sensitivity=0.5, input_device_index=2):
         super().__init__(node_name, host, port, username, password, subscribe_dict, run_sleep)
 
         self.listener = None
         self.wakeword_sensitivity = wakeword_sensitivity
+        self.input_device_index = input_device_index
 
         self.add_subscribe('+/wakeword/start', self.handle_wakeword_start)
         self.add_subscribe('+/wakeword/stop', self.handle_wakeword_stop)
@@ -127,7 +128,6 @@ class WakeWord(NodeBase):
 
     def handle_wakeword_start(self, client, userdata, message):
         _message = str(message.payload.decode("utf-8"))
-        print("###handle_wakeword_start: ", _message)
         #wakeword_start_msg = WakeWordStartMessage.from_json(_message)
 
         if self.is_busy:
@@ -144,7 +144,8 @@ class WakeWord(NodeBase):
                 return
         """
 
-        wakeword = WakeWordListener(publish=self.publish, sensitivity=self.wakeword_sensitivity)
+        wakeword = WakeWordListener(publish=self.publish, sensitivity=self.wakeword_sensitivity,
+                                        input_device_index=self.input_device_index)
         self.listener = wakeword
 
         def callback():
@@ -153,12 +154,7 @@ class WakeWord(NodeBase):
 
         self.publish_state()
 
-        def start():
-            #wakeword.handle_wakeword_start(wakeword_start_msg.sensitivity, callback=set_not_busy)
-            wakeword.handle_wakeword_start(0.5, callback=callback)
-
-        t = threading.Thread(target=start)
-        t.start()
+        wakeword.handle_wakeword_start(callback=callback)
 
     def handle_wakeword_stop(self, client, userdata, message):
         if self.listener == WAKEWORD:
@@ -170,13 +166,21 @@ class WakeWord(NodeBase):
             self.listener.stop()
             self.listener = None
 
-        print("###stop: ", type(self.listener))
-        super().stop()
+    def handle_quit(self, command_input=None):
+        self.stop()
+        super().handle_quit()
+
+    def make_handle_stop(self):
+        def handle_stop(sig, frame):
+            self.running = False
+
+        return handle_stop
 
 def main():
     node = None
     try:
-        node = WakeWord("wakeword")
+        # TODO: move these params to config
+        node = WakeWord("wakeword", wakeword_sensitivity=0.9, input_device_index=2)
         node.run()
     except KeyboardInterrupt:
         if node is not None:

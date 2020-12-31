@@ -6,6 +6,34 @@ import time
 from soundmeter.meter import Meter
 from ....model.messages import ThresholdResponseMessage
 
+# TODO: fix segfault
+# threshold works fine but segfaults for some reason when trying quit.  The following error message is captured with faulthandler:
+# > quit
+# Fatal Python error: Segmentation fault
+#
+# Thread 0xb5beb460 (most recent call first):
+#   File "/home/pi/venvs/reachy-env/lib/python3.7/site-packages/paho/mqtt/client.py", \
+# line 2919 in _packet_queue
+#   File "/home/pi/venvs/reachy-env/lib/python3.7/site-packages/paho/mqtt/client.py", \
+# line 2723 in _send_disconnect
+#   File "/home/pi/venvs/reachy-env/lib/python3.7/site-packages/paho/mqtt/client.py", \
+# line 1374 in disconnect
+#   File "/home/pi/CoLab-Reachy/software/cl_reachy/cl_reachy/node.py", line 103 in run\
+# _mqtt
+#   File "/usr/lib/python3.7/logging/__init__.py", line 861 in release
+#   File "/usr/lib/python3.7/logging/__init__.py", line 2050 in shutdown
+#
+# Thread 0xb6db9860 (most recent call first):
+#
+# Thread 0x2872076b (most recent call first):
+#
+# Thread 0xSegmentation fault
+# -------------------------------------------
+#
+# The error looks like it's occurring in the logger in the paho mqtt client thread though.
+import faulthandler
+faulthandler.enable()
+
 # SoundMeter sets its config file in a funny way.  It's either based on the user home directory or
 # set by the SOUNDMETER_TEST_CONFIG environment variable. Set SOUNDMETER_TEST_CONFIG so it can get
 # config file from resources.
@@ -70,6 +98,7 @@ class ThresholdMeter(Meter):
         self.final_callback = final_callback
 
         threshold_response_msg = ThresholdResponseMessage(True, self.threshold, self.num)
+        # TODO: update topic - get rid of audioinput
         self.publish("audioinput/threshold/response", threshold_response_msg.to_json())
 
         segment = self.segment or self.config.AUDIO_SEGMENT_LENGTH
@@ -130,10 +159,4 @@ class ThresholdMeter(Meter):
 
     def poststop(self):
         if self.final_callback:
-<<<<<<< HEAD:software/cl_reachy/cl_reachy/view/sound/threshold.py
             self.final_callback()
-
-
-=======
-            self.final_callback()
->>>>>>> e66ea7afdde8cadd6cb898996e59df5bb1b1f3ab:software/cl_reachy/cl_reachy/view/sound/threshold/meter.py

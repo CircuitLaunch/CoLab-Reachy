@@ -2,6 +2,7 @@ from datetime import datetime
 import pyaudio
 import time
 from .snowboydecoder import HotwordDetector, RESOURCE_FILE, logger, no_alsa_error, play_audio_file
+from ....util import is_valid_input_device
 
 class HotwordDetectorWithDevice(HotwordDetector):
     def __init__(self, decoder_model,
@@ -12,6 +13,17 @@ class HotwordDetectorWithDevice(HotwordDetector):
         super().__init__(decoder_model, resource, sensitivity, audio_gain, apply_frontend)
 
         self.input_device_index = input_device_index
+        self.audio = None
+
+        input_devices = get_input_devices()
+
+        """
+        for key, val in input_devices.items():
+            print("###{}: {}".format(key, val))
+        """
+
+        if not is_valid_input_device(self.input_device_index):
+            raise Exception("Invalid input device: {}".format(self.input_device_index))
 
     def start(self, detected_callback=play_audio_file,
               interrupt_check=lambda: False,
@@ -54,6 +66,7 @@ class HotwordDetectorWithDevice(HotwordDetector):
 
         with no_alsa_error():
             self.audio = pyaudio.PyAudio()
+
         self.stream_in = self.audio.open(
             input=True, output=False,
             format=self.audio.get_format_from_width(

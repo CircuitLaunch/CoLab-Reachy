@@ -8,6 +8,7 @@ import wave
 import webrtcvad
 from halo import Halo
 from scipy import signal
+from .....util import is_valid_input_device
 
 logging.basicConfig(level=20)
 
@@ -48,6 +49,8 @@ class Audio(object):
         self.chunk = None
         # if not default device
         if self.device:
+            if not is_valid_input_device(self.device):
+                raise Exception("Invalid input device: {}".format(self.input_device_index))
             kwargs['input_device_index'] = self.device
         elif file is not None:
             self.chunk = 320

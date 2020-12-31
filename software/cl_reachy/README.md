@@ -71,8 +71,27 @@ python -m cl_reachy.view.body.body
 ```
 
 ### Threshold
+Triggers based on sound threshold
 ```bash
 python -m cl_reachy.view.sound.threshold.threshold
+```
+
+### Wakeword
+Triggers on the wake word, "Reachy"
+```bash
+python -m cl_reachy.view.sound.wakeword.wakeword
+```
+
+### Speech Recognition
+Listens and transcribes spoken words
+#### Google Cloud
+```
+python -m cl_reachy.view.sound.speechrecognition.google.main
+```
+or
+#### Mozilla Deep Speech
+```
+python -m cl_reachy.view.sound.speechrecognition.mozilla.main
 ```
 
 ### Main Controller

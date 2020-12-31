@@ -3,9 +3,8 @@ import numpy as np
 import os
 import pathlib
 import threading, collections, queue, os, os.path
-from ....util import *
-from ....node import NodeBase
-from ....model.messages import HeardMessage
+from .....node import NodeBase
+from .....model.messages import HeardMessage
 from .mic_vad_streaming import VADAudio
 import deepspeech
 
@@ -13,7 +12,7 @@ class DeepSpeech(NodeBase):
     def __init__(self, node_name="deepspeech", host="127.0.0.1", port=1883,
                     username=None, password=None, subscribe_dict={}, run_sleep=0.1,
                     vad_aggressiveness=3, model_path="deepspeech-0.9.3-models.tflite",
-                    scorer_path="deepspeech-0.9.3-models.scorer", device=None, rate=8000):
+                    scorer_path="deepspeech-0.9.3-models.scorer", device=None, rate=16000):
         super().__init__(node_name, host, port, username, password, subscribe_dict, run_sleep)
 
         self.vad_aggressiveness=vad_aggressiveness
@@ -24,15 +23,7 @@ class DeepSpeech(NodeBase):
         self.model_path = os.path.join(self.resources_dir, model_path)
         self.scorer_path = os.path.join(self.resources_dir, scorer_path)
 
-        # if the input device isn't supplied, pick based on platform
-        if device is None:
-            platform = get_platform()
-            if platform == INTEL:
-                self.device = 0
-            elif platform == RASPBERRYPI:
-                self.device = 1
-            else:
-                self.device = None
+        self.device = device
 
         self.rate = rate
 
@@ -87,15 +78,3 @@ class DeepSpeech(NodeBase):
         print("stopping...")
         if self.vad_audio is not None:
             self.vad_audio.running = False
-
-def main():
-    node = None
-    try:
-        node = DeepSpeech("deepspeech")
-        node.run()
-    except KeyboardInterrupt:
-        if node is not None:
-            node.stop()
-
-if __name__ == "__main__":
-    main()
