@@ -149,6 +149,7 @@ class WakeWord(NodeBase):
         self.listener = wakeword
 
         def callback():
+            print("wakeword heard")
             self.publish("wakeword/wakeword/heard")
             self.listener = None
 
@@ -176,16 +177,5 @@ class WakeWord(NodeBase):
 
         return handle_stop
 
-def main():
-    node = None
-    try:
-        # TODO: move these params to config
-        node = WakeWord("wakeword", wakeword_sensitivity=0.9, input_device_index=2)
-        node.run()
-    except KeyboardInterrupt:
-        if node is not None:
-            node.stop()
 
-if __name__ == "__main__":
-    main()
 

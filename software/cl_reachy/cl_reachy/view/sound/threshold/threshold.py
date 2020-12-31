@@ -6,7 +6,7 @@ from ....model.messages import AudioInputStateMessage, ThresholdStartMessage
 class Threshold(NodeBase):
     def __init__(self, node_name="audioinput", host="127.0.0.1", port=1883,
                     username=None, password=None, subscribe_dict={}, run_sleep=0.1,
-                    profile="soundmeter"):
+                    profile="reachy"):
         super().__init__(node_name, host, port, username, password, subscribe_dict, run_sleep)
         self.profile = profile
 
@@ -21,7 +21,7 @@ class Threshold(NodeBase):
 
     def publish_state(self):
         msg = AudioInputStateMessage(is_busy=self.is_busy, listener="threshold")
-        self.publish("threshold/state", msg.to_json())
+        self.publish("threshold/threshold/state", msg.to_json())
 
     def make_sigint_handler(self):
         def sigint_handler(signum, frame):
@@ -69,17 +69,7 @@ class Threshold(NodeBase):
 
         super().handle_quit(command_input)
 
-def main():
-    node = None
-    try:
-        node = Threshold("threshold")
-        node.run()
-    except KeyboardInterrupt:
-        if node is not None:
-            node.stop()
 
-if __name__ == "__main__":
-    main()
 
 
 

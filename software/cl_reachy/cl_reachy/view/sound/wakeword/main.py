@@ -1,12 +1,12 @@
 import argparse
 import configparser
 import os
-from .speechrecognition import DeepSpeech
-from .....util import get_curr_resource_dir
+from ....util import get_curr_resource_dir
+from .wakeword import WakeWord
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-e', '--env', dest='env', type=str, help="environment [reachy|dev]")
+    parser.add_argument('-e', '--env', dest='env', type=str, default="reachy", help="environment")
     args = parser.parse_args()
 
     resource_dir = get_curr_resource_dir(__file__)
@@ -15,15 +15,14 @@ def main():
     config_file = os.path.join(resource_dir, "config")
     config.read(config_file)
 
-    vad_aggressiveness = int(config[args.env]['vad_aggressiveness'])
+    wakeword_sensitivity = float(config[args.env]['wakeword_sensitivity'])
     input_device_index = int(config[args.env]['input_device_index'])
-    rate = int(config[args.env]['rate'])
 
     node = None
     try:
-        node = DeepSpeech("deepspeech", vad_aggressiveness=vad_aggressiveness,
-                            input_device_index=input_device_index ,
-                            rate=rate)
+        # TODO: move these params to config
+        node = WakeWord("wakeword", wakeword_sensitivity=wakeword_sensitivity,
+                            input_device_index=input_device_index)
         node.run()
     except KeyboardInterrupt:
         if node is not None:

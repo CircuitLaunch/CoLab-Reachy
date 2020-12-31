@@ -1,0 +1,9 @@
+[reachy]
+vad_aggressiveness = 0
+input_device_index = 2
+rate = 16000
+
+[dev]
+vad_aggressiveness = 0
+input_device_index = 0
+rate = 16000

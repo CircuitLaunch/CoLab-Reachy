@@ -1,0 +1,7 @@
+[reachy]
+input_device_index = 2
+wakeword_sensitivity=0.9
+
+[dev]
+input_device_index = 0
+wakeword_sensitivity=0.9

@@ -15,13 +15,6 @@ class HotwordDetectorWithDevice(HotwordDetector):
         self.input_device_index = input_device_index
         self.audio = None
 
-        input_devices = get_input_devices()
-
-        """
-        for key, val in input_devices.items():
-            print("###{}: {}".format(key, val))
-        """
-
         if not is_valid_input_device(self.input_device_index):
             raise Exception("Invalid input device: {}".format(self.input_device_index))
 

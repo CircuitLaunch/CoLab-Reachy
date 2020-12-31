@@ -67,19 +67,19 @@ python -m cl_reachy.view.sound.speechsynthesis
 ### Body
 Currently interfaces with the simulator. Accepts messages for sample, preset motions.
 ```bash
-python -m cl_reachy.view.body.body
+python -m cl_reachy.view.body.main --env=[reachy|dev]
 ```
 
 ### Threshold
 Triggers based on sound threshold
 ```bash
-python -m cl_reachy.view.sound.threshold.threshold
+python -m cl_reachy.view.sound.threshold.main --env=[reachy|dev]
 ```
 
 ### Wakeword
 Triggers on the wake word, "Reachy"
 ```bash
-python -m cl_reachy.view.sound.wakeword.wakeword
+python -m cl_reachy.view.sound.wakeword.main --env=[reachy|dev]
 ```
 
 ### Speech Recognition
@@ -91,7 +91,7 @@ python -m cl_reachy.view.sound.speechrecognition.google.main
 or
 #### Mozilla Deep Speech
 ```
-python -m cl_reachy.view.sound.speechrecognition.mozilla.main
+python -m cl_reachy.view.sound.speechrecognition.mozilla.main --env=[reachy|dev]
 ```
 
 ### Main Controller

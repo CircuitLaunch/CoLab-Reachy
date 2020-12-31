@@ -13,18 +13,20 @@ REACHY_SIM = os.environ['REACHY_SIM'] if 'REACHY_SIM' in os.environ.keys() else 
 
 class Body(NodeBase):
     def __init__(self, node_name="speechsynthesis", host="127.0.0.1", port=1883,
-                    username=None, password=None, subscribe_dict={}, run_sleep=0.1):
+                    username=None, password=None, subscribe_dict={}, run_sleep=0.1,
+                    env="dev"):
         super().__init__(node_name, host, port, username, password, subscribe_dict, run_sleep)
 
         curr_platform = get_platform()
-        if curr_platform == INTEL:
+        if env == "dev":
             self.io = "ws"
-        elif curr_platform == RASPBERRYPI:
+        elif env == "reachy":
             self.io = '/dev/ttyUSB*'
             parts.Head = patch_head(parts.Head)
             parts.RightArm = patch_right_arm(parts.RightArm)
             parts.arm.RightForceGripper = patch_force_gripper(parts.arm.RightForceGripper)
-
+        else:
+            raise Exception("Invalid env: {}".format(env))
 
         self.reachy = Reachy(head=parts.Head(io=self.io), right_arm=parts.RightArm(io=self.io, hand='force_gripper'),)
 
@@ -377,10 +379,4 @@ class Body(NodeBase):
     def handle_wiggle_antennas(self, client=None, userdata=None, message=None):
         self.action_queue.add(self.make_wiggle_antennas())
 
-def main():
-    node = Body("body")
-    node.run()
 
-if __name__ == "__main__":
-    # execute only if run as a script
-    main()

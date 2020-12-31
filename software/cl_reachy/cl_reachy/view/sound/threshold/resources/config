@@ -1,4 +1,13 @@
-[soundmeter]
+[reachy]
+frames_per_buffer = 2048
+format = 8
+channels = 1
+rate = 16000
+audio_segment_length = 0.5
+rms_as_trigger_arg = False
+input_device_index = 0
+
+[dev]
 frames_per_buffer = 2048
 format = 8
 channels = 1

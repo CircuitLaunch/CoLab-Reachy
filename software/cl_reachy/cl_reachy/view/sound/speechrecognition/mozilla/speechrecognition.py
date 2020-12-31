@@ -12,7 +12,7 @@ class DeepSpeech(NodeBase):
     def __init__(self, node_name="deepspeech", host="127.0.0.1", port=1883,
                     username=None, password=None, subscribe_dict={}, run_sleep=0.1,
                     vad_aggressiveness=3, model_path="deepspeech-0.9.3-models.tflite",
-                    scorer_path="deepspeech-0.9.3-models.scorer", device=None, rate=16000):
+                    scorer_path="deepspeech-0.9.3-models.scorer", input_device_index=None, rate=16000):
         super().__init__(node_name, host, port, username, password, subscribe_dict, run_sleep)
 
         self.vad_aggressiveness=vad_aggressiveness
@@ -22,8 +22,9 @@ class DeepSpeech(NodeBase):
 
         self.model_path = os.path.join(self.resources_dir, model_path)
         self.scorer_path = os.path.join(self.resources_dir, scorer_path)
+        print("###scorer_path: ", self.scorer_path)
 
-        self.device = device
+        self.input_device_index = input_device_index
 
         self.rate = rate
 
@@ -38,6 +39,7 @@ class DeepSpeech(NodeBase):
         self.publish("deepspeech/heard/response", heard_msg.to_json())
 
     def handle_listen_start(self, client, userdata, message):
+        print("listening...")
         if self.model is None:
             self.model = deepspeech.Model(self.model_path)
             self.model.enableExternalScorer(self.scorer_path)
@@ -45,7 +47,7 @@ class DeepSpeech(NodeBase):
         if self.vad_audio is None:
             # Start audio with VAD
             self.vad_audio = VADAudio(aggressiveness=self.vad_aggressiveness,
-                                device=self.device,
+                                device=self.input_device_index,
                                 input_rate=self.rate,
                                 file=None)
             frames = self.vad_audio.vad_collector()

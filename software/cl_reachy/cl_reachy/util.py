@@ -1,5 +1,7 @@
 import platform
 import pyaudio
+import os
+import pathlib
 
 INTEL = "intel"
 RASPBERRYPI = "raspberry pi"
@@ -12,6 +14,13 @@ def get_platform():
         return RASPBERRYPI
     else:
         raise UNKNOWN
+
+def get_curr_dir(_file):
+    return pathlib.Path(_file).parent.absolute()
+
+def get_curr_resource_dir(_file):
+    curr_dir_path = get_curr_dir(_file)
+    return os.path.join(curr_dir_path, "resources")
 
 def get_input_devices():
     audio = pyaudio.PyAudio()
@@ -27,5 +36,4 @@ def get_input_devices():
 
 def is_valid_input_device(input_device_index):
     input_devices = get_input_devices()
-
     return (input_device_index in input_devices.keys())
