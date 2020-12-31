@@ -27,6 +27,18 @@ class SayMessage(DataModelBase):
     def from_json(msgJson):
         return json.loads(msgJson, object_hook=SayMessage.decoder)
 
+class RightArmMessage(DataModelBase):
+    def __init__(self, msg=None):
+        self.msg = msg
+
+    @staticmethod
+    def decoder(msgDict):
+        return namedtuple(RightArmMessage.__name__, msgDict.keys())(*msgDict.values())
+
+    @staticmethod
+    def from_json(msgJson):
+        return json.loads(msgJson, object_hook=RightArmMessage.decoder)
+
 class HeardMessage(DataModelBase):
     def __init__(self, corrected_time=None, transcript=""):
         self.corrected_time = corrected_time
@@ -54,8 +66,7 @@ class AudioInputStateMessage(DataModelBase):
         return json.loads(msgJson, object_hook=AudioInputStateMessage.decoder)
 
 class ThresholdStartMessage(DataModelBase):
-    def __init__(self, threshold, num, force=False):
-        self.threshold = threshold
+    def __init__(self, num, force=False):
         self.num = num
         self.force = False
 

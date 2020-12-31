@@ -1,6 +1,6 @@
 import threading
 import time
-from ..model.messages import LogMessage, SayMessage, ThresholdStartMessage, WakeWordStartMessage
+from ..model.messages import LogMessage, RightArmMessage, SayMessage, ThresholdStartMessage, WakeWordStartMessage
 from ..node import NodeBase
 
 class Console(NodeBase):
@@ -11,6 +11,8 @@ class Console(NodeBase):
         self.run_thread = None
 
         _command_dict = {
+            "init_all": self.handle_init_all,
+            "main_init": self.handle_main_init,
             "stop_all": self.handle_stop_all,
             "log": self.handle_log,
             "say": self.handle_say,
@@ -39,6 +41,8 @@ class Console(NodeBase):
         self.command_dict.update(_command_dict)
 
         _command_desc_dict = {
+            "init_all": "inits all components",
+            "main_init": "inits and starts main",
             "stop_all": "stop all nodes (including the console app)",
             "log": "send message to logger",
             "say": "say message",
@@ -66,6 +70,11 @@ class Console(NodeBase):
         }
         self.command_desc_dict.update(_command_desc_dict)
 
+    def handle_init_all(self, command_input):
+        self.publish("console/init/all")
+
+    def handle_main_init(self, command_input):
+        self.publish("console/init/main")
 
     def handle_stop_all(self, command_input):
         self.publish("console/stop/all")
@@ -109,7 +118,7 @@ class Console(NodeBase):
         self.publish("console/sample_motion/request/right_arm")
 
     def handle_threshold_start(self, command_input):
-        threshold_start_msg = ThresholdStartMessage(threshold="+2000", num=1)
+        threshold_start_msg = ThresholdStartMessage(num=1)
         self.publish("console/threshold/start", threshold_start_msg.to_json())
 
     def handle_body_init(self, command_input):
@@ -122,7 +131,17 @@ class Console(NodeBase):
         self.publish("console/body/stop")
 
     def handle_wave_arm(self, command_input):
-        self.publish("console/body/right_arm/wave")
+        msg = self.get_msg_from_command_input("wave", command_input)
+
+        if msg != "":
+            right_arm_msg = RightArmMessage(msg)
+
+            payload = right_arm_msg.to_json()
+            print(payload)
+
+            self.publish("console/body/right_arm/wave", right_arm_msg.to_json())
+        else:
+            self.publish("console/body/right_arm/wave")
 
     def handle_wiggle_antennas(self, command_input):
         self.publish("console/body/head/antenna/wiggle")
@@ -145,6 +164,10 @@ class Console(NodeBase):
 
     def handle_deepspeek_stop(self, command_input):
         self.publish("console/deepspeech/listen/stop")
+
+    def node_init(self):
+        # nothing to init
+        pass
 
 def main():
     node = Console("console")

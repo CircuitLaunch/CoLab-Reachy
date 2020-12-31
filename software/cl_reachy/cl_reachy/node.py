@@ -136,6 +136,11 @@ class NodeBase(object):
             if stop_topic not in self.subscribe_dict.keys():
                 self.subscribe_dict[stop_topic] = self.node_stop
 
+        init_topics = ["+/init/{}".format(self.node_name), "+/init/all"]
+        for init_topic in init_topics:
+            if init_topic not in self.subscribe_dict.keys():
+                self.subscribe_dict[init_topic] = self.node_init
+
         for key in self.subscribe_dict.keys():
             self.subscribe(key)
 
@@ -159,7 +164,12 @@ class NodeBase(object):
         self.client.loop_stop(True)
 
     def node_stop(self):
+        print("###node_stop")
         self.running = False
+
+    def node_init(self):
+        print("init")
+        self.running = True
 
     def subscribe(self, topic):
         self.client.subscribe(topic, qos=2)
@@ -176,10 +186,13 @@ class NodeBase(object):
     def is_topic_stop(self, topic):
         return self.does_topic_match(topic, "+/stop/{}".format(self.node_name)) or self.does_topic_match(topic, "+/stop/all")
 
+    def is_topic_init(self, topic):
+        return self.does_topic_match(topic, "+/init/{}".format(self.node_name)) or self.does_topic_match(topic, "+/init/all")
+
     def on_message(self, client, userdata, message):
         for key in self.subscribe_dict.keys():
             if self.does_topic_match(message.topic, key):
-                if self.is_topic_stop(key):
+                if self.is_topic_stop(key) or self.is_topic_init(key):
                     # stop method doesn't take any params
                     self.subscribe_dict[key]()
                 else:

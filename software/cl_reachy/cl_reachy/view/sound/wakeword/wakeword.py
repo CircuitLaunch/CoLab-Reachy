@@ -30,6 +30,11 @@ class WakeWordListener(object):
 
         self.greetings = ['Hello, Human!', 'Hi, nice to meet you', 'How are you doing today?', '***time greeting***']
 
+    """
+    def node_init(self):
+        self.interrupted = True
+    """
+
     def make_interrupt_callback(self):
         def interrupt_callback():
             return self.interrupted
@@ -69,6 +74,7 @@ class WakeWordListener(object):
         self.publish('wakeword/completed')
 
     def handle_wakeword_start(self, sensitivity=None, callback=None):
+        print("listening...")
         if sensitivity is None:
             sensitivity = self.sensitivity
 
@@ -176,6 +182,7 @@ class WakeWord(NodeBase):
             self.running = False
 
         return handle_stop
+
 
 
 

@@ -34,6 +34,14 @@ class DeepSpeech(NodeBase):
         self.add_subscribe('+/deepspeech/listen/start', self.handle_listen_start)
         self.add_subscribe('+/deepspeech/listen/stop', self.handle_listen_stop)
 
+    """
+    def node_init(self):
+        if self.vad_audio is not None:
+            self.vad_audio.running = False
+
+        super().node_init()
+    """
+
     def publish_heard(self, text):
         heard_msg = HeardMessage(transcript=text)
         self.publish("deepspeech/heard/response", heard_msg.to_json())

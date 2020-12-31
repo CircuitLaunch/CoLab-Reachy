@@ -55,7 +55,7 @@ python -m cl_reachy.view.console
 ### Camera
 Takes a picture from your webcam.
 ```bash
-python -m cl_reachy.controller.visual.camera.main --env=[reachy|dev]
+python -m cl_reachy.controller.visual.main --env=[reachy|dev]
 ```
 
 If you are using VirtualBox, you will need to set up the webcam passthru:

@@ -9,7 +9,8 @@ def main():
     node = None
 
     try:
-        node = Threshold("threshold", profile=args.env)
+        # TODO: move threshold setting to config
+        node = Threshold("threshold", profile=args.env, threshold="+500")
         node.run()
     except KeyboardInterrupt:
         if node is not None:

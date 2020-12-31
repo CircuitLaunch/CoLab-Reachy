@@ -1,6 +1,6 @@
 import argparse
 import os
-from ....util import get_curr_resource_dir
+from ...util import get_curr_resource_dir
 from .body import Body
 
 def main():

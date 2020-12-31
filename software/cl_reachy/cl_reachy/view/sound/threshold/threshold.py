@@ -6,9 +6,10 @@ from ....model.messages import AudioInputStateMessage, ThresholdStartMessage
 class Threshold(NodeBase):
     def __init__(self, node_name="audioinput", host="127.0.0.1", port=1883,
                     username=None, password=None, subscribe_dict={}, run_sleep=0.1,
-                    profile="reachy"):
+                    profile="reachy", threshold="+500"):
         super().__init__(node_name, host, port, username, password, subscribe_dict, run_sleep)
         self.profile = profile
+        self.threshold = threshold
 
         self.threshold_meter = None
 
@@ -18,6 +19,12 @@ class Threshold(NodeBase):
     @property
     def is_busy(self):
         return (self.threshold_meter is not None)
+
+    def node_init(self):
+        if self.is_busy:
+            self.stop()
+
+        super().node_init()
 
     def publish_state(self):
         msg = AudioInputStateMessage(is_busy=self.is_busy, listener="threshold")
@@ -34,28 +41,30 @@ class Threshold(NodeBase):
         self.publish_state()
 
     def handle_threshold_start(self, client, userdata, message):
+        print("###handle_threshold_start - 1")
         _message = str(message.payload.decode("utf-8"))
+        print("###handle_threshold_start - 2 - _message: ", _message)
         threshold_start_msg = ThresholdStartMessage.from_json(_message)
 
         if self.is_busy:
-            if threshold_start_msg.force:
-                # force stop
-                self.stop()
-            else:
-                # the mic is busy. don't start. just publish the state
-                self.publish_state()
-                return
+            print("###handle_threshold_start - 3")
 
-        self.threshold_meter = ThresholdMeter(action="exec-stop", threshold="+500",
+            # force stop
+            self.stop()
+            while self.is_busy:
+                time.sleep(0.1)
+
+        print("###handle_threshold_start - 4")
+        self.threshold_meter = ThresholdMeter(action="exec-stop", threshold=self.threshold,
                                     num=int(threshold_start_msg.num), publish=self.publish, verbose=True,
                                     profile=self.profile)
 
+        print("###handle_threshold_start - 5")
         self.threshold_meter.start(final_callback=self.completed)
+        print("###handle_threshold_start - 6")
 
     def handle_threshold_stop(self, client, userdata, message):
-        if self.mic_owner_name == THRESHOLD:
-            self.threshold_meter.stop()
-            self.threshold_meter = None
+        self.threshold_meter.stop()
 
     def stop(self):
         if self.threshold_meter is not None:

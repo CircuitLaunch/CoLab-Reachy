@@ -3,6 +3,7 @@ import numpy as np
 import platform
 import time
 #from . import config
+from ...model.messages import RightArmMessage, SayMessage
 from ...node import NodeBase
 from reachy import Reachy, parts
 from .action import ActionQueue
@@ -44,8 +45,6 @@ class Body(NodeBase):
         self.add_subscribe('+/body/head/antenna/zero', self.move_antennas_to_zero)
         self.add_subscribe('+/body/right_arm/zero', self.handle_wiggle_antennas)
 
-        self.state = ActionQueue.RUNNING
-
     def initialize(self):
         # move to the stop state for now
         self.state = ActionQueue.STOPPED
@@ -68,6 +67,14 @@ class Body(NodeBase):
         self.action_queue = ActionQueue(self)
 
         self.action_queue.run()
+
+        self.state = ActionQueue.RUNNING
+
+    """
+    def node_init(self):
+        self.initialize()
+        super().node_init()
+    """
 
     def handle_initialize(self, client=None, userdata=None, message=None):
         self.initialize()
@@ -159,65 +166,13 @@ class Body(NodeBase):
         self.move_antennas_to_zero()
         self.move_right_arm_to_zero()
 
-    """
-    def make_wave_arm(self):
-        def wave_arm():
-            self.set_right_arm_compliance(False)
+    def say(self, msg):
+        say_msg = SayMessage(msg)
+        payload = say_msg.to_json()
+        print(payload)
+        self.publish("body/say/request", payload=payload)
 
-            #Wave Frame 1, bring arm up
-            self.reachy.goto({
-                'right_arm.shoulder_pitch': -20,
-                'right_arm.shoulder_roll': -10,
-                'right_arm.arm_yaw': -10,
-                'right_arm.elbow_pitch': -120,
-                'right_arm.hand.forearm_yaw': 0,
-                'right_arm.hand.wrist_pitch': 0,
-                'right_arm.hand.wrist_roll': 0,
-                'right_arm.hand.gripper': 0,
-            }, duration=2, wait=True)
-
-            #Wave Frame 2 (Hand Wave)
-            self.reachy.goto({
-                'right_arm.hand.wrist_roll': 40,
-                'right_arm.hand.gripper': 0,
-            }, duration=0.75, wait=True)
-
-            self.reachy.goto({
-                'right_arm.hand.wrist_roll': -40,
-                'right_arm.hand.gripper': 0,
-            }, duration=0.75, wait=True)
-
-            self.reachy.goto({
-                'right_arm.hand.wrist_roll': 40,
-                'right_arm.hand.gripper': 0,
-            }, duration=0.75, wait=True)
-
-            self.reachy.goto({
-                'right_arm.hand.wrist_roll': -40,
-                'right_arm.hand.gripper': 0,
-            }, duration=0.75, wait=True)
-
-            time.sleep(2) #wait 2 seconds
-
-            #Wave Frame 3, return to home position
-            self.reachy.goto({
-                'right_arm.shoulder_pitch': 0,
-                'right_arm.shoulder_roll': 0,
-                'right_arm.arm_yaw': 0,
-                'right_arm.elbow_pitch': 0,
-                'right_arm.hand.forearm_yaw': 0,
-                'right_arm.hand.wrist_pitch': 0,
-                'right_arm.hand.wrist_roll': 0,
-                'right_arm.hand.gripper': 0,
-            }, duration=2, wait=True)
-
-
-            self.move_right_arm_to_zero()
-            self.set_right_arm_compliance(True)
-
-        return wave_arm
-    """
-    def make_wave_arm(self):
+    def make_wave_arm(self, say_msg=None):
         def wave_arm():
             print("###wave_arm - 1")
             self.set_right_arm_compliance(False)
@@ -276,6 +231,13 @@ class Body(NodeBase):
             self.reachy.goto(goal_positions = zero_posR, duration=2, wait=True)
             time.sleep(2)
 
+            # TODO: ok... this is kind of hacky. The say message
+            # should really be coming from the main controller.
+            # Just do it here so it's more synchronized with the
+            # wave.
+            if say_msg is not None:
+                self.say(say_msg)
+
             print("###wave_arm - 3")
             self.reachy.goto(goal_positions = pos_RA, duration = 2.5, wait = True)
             self.reachy.head.left_antenna.goto(-45, duration = 4, wait = False) # depends on actual calibration - may need opp sign
@@ -295,7 +257,15 @@ class Body(NodeBase):
         return wave_arm
 
     def handle_wave_arm(self, client=None, userdata=None, message=None):
-        self.action_queue.add(self.make_wave_arm())
+        print("###handle_wave_arm - 1")
+        try:
+            _message = str(message.payload.decode("utf-8"))
+            print("###handle_wave_arm - 2: ", _message)
+            right_arm_msg = RightArmMessage.from_json(_message)
+            self.action_queue.add(self.make_wave_arm(right_arm_msg.msg))
+        except Exception as e:
+            print("###handle_wave_arm - 3 - e: ", e)
+            self.action_queue.add(self.make_wave_arm())
 
     """
     def make_wiggle_antennas(self):

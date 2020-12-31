@@ -2,4 +2,4 @@
 show_frames = 0
 
 [dev]
-show_frames = 1
+show_frames = 0

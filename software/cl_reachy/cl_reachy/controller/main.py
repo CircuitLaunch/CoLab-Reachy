@@ -1,5 +1,7 @@
+import time
+import sys
 from ..node import NodeBase
-from ..model.messages import SayMessage, ThresholdStartMessage
+from ..model.messages import RightArmMessage, SayMessage, ThresholdStartMessage
 
 START = "start"
 IDLE = "idle"
@@ -20,10 +22,30 @@ class MainController(NodeBase):
         self.add_subscribe("+/noonethere", self.handle_no_one_there)
         self.add_subscribe("+/wakeword/heard", self.handle_wakeword_heard)
 
+    def subscribe_all(self):
+        stop_topics = ["+/stop/{}".format(self.node_name), "+/stop/all"]
+        for stop_topic in stop_topics:
+            if stop_topic not in self.subscribe_dict.keys():
+                self.subscribe_dict[stop_topic] = self.node_stop
+
+        # ignore init all. only listen for main controller init.
+        init_topic = "+/init/{}".format(self.node_name)
+        if init_topic not in self.subscribe_dict.keys():
+            self.subscribe_dict[init_topic] = self.node_init
+
+        for key in self.subscribe_dict.keys():
+            self.subscribe(key)
+
     def on_connect(self, client, userdata, flags, rc):
         super().on_connect(client, userdata, flags, rc)
 
-        self.do_start()
+        self.handle_start()
+
+    """
+    def node_init(self):
+        self.handle_start()
+        super().node_init()
+    """
 
     def say(self, msg):
         say_msg = SayMessage(msg)
@@ -31,9 +53,19 @@ class MainController(NodeBase):
         print(payload)
         self.publish("maincontroller/say/request", payload=payload)
 
-    def do_start(self, client=None, userdata=None, message=None):
+    def handle_start(self, client=None, userdata=None, message=None):
         print("###start")
-        threshold_start_msg = ThresholdStartMessage(threshold="+1000", num=1)
+        self.publish("main/init/all")
+
+        # TODO: do better synchronization instead of just a sleep
+        print("staring", end='')
+        for i in range(10):
+            print(".", end='')
+            sys.stdout.flush()
+            time.sleep(1)
+        print()
+
+        threshold_start_msg = ThresholdStartMessage(num=1)
         payload = threshold_start_msg.to_json()
         self.publish("main/threshold/start", payload)
 
@@ -54,12 +86,14 @@ class MainController(NodeBase):
 
     def handle_no_one_there(self, client, userdata, message):
         if self.state in [SCANNING, GREET, INTERACT]:
-            self.do_start(client, userdata, message)
+            self.handle_start(client, userdata, message)
 
     def do_welcome(self):
         print("###welcome")
-        self.say("Welcome to Circuit Launch")
-        self.publish("main/body/right_arm/wave")
+        #self.say("Welcome to Circuit Launch")
+
+        right_arm_msg = RightArmMessage("Welcome to Circuit Launch")
+        self.publish("main/body/right_arm/wave", right_arm_msg.to_json())
         self.publish("main/body/head/antenna/wiggle")
 
         self.state = WELCOME
@@ -87,7 +121,7 @@ class MainController(NodeBase):
         self.publish("main/speechrecognition/start")
 
 def main():
-    node = MainController("maincontroller")
+    node = MainController("main")
     node.run()
 
 if __name__ == "__main__":
