@@ -22,7 +22,7 @@ apt clean
 # swig
 apt-get install -y swig
 
-# sound 
+# sound
 apt-get install libpulse-dev -y
 apt-get install libasound2-dev -y
 apt-get install pavucontrol -y
@@ -36,3 +36,6 @@ apt-get install libedgetpu1-std -y
 
 # numpy dependencies
 apt-get install libatlas-base-dev -y
+
+# opencv dependencies
+apt-get install python3-h5py

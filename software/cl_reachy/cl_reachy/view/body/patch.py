@@ -35,6 +35,12 @@ def patch_right_arm(arm_cls):
             'angle-limits': [-180, 60],
             'link-translation': [0, -0.19, 0], 'link-rotation': [0, 1, 0],
         }),
+        ('shoulder_roll', {
+            # TODO: still need to fix offset
+            'id': 11, 'offset': 90, 'orientation': 'indirect',
+            'angle-limits': [-180, 10],
+            'link-translation': [0, 0, 0], 'link-rotation': [1, 0, 0],
+        }),
         ('arm_yaw', {
             'id': 12, 'offset': 0.0, 'orientation': 'indirect',
             'angle-limits': [-90, 90],
@@ -66,7 +72,7 @@ def patch_force_gripper(forceGripper):
         self._load_sensor.offset = 4
         self._load_sensor.scale = 10000
         """
-        
+
     forceGripper.__init__ = __init__
-    
+
     return forceGripper

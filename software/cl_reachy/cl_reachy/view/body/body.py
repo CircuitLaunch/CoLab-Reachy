@@ -150,7 +150,7 @@ class Body(NodeBase):
 
         self.reachy.goto({
             'right_arm.shoulder_pitch': 0,
-            #'right_arm.shoulder_roll': 90,
+            'right_arm.shoulder_roll': 0,
             'right_arm.arm_yaw': 0,
             'right_arm.elbow_pitch': 0,
             'right_arm.hand.forearm_yaw': 0,
@@ -179,7 +179,7 @@ class Body(NodeBase):
 
             zero_posR = {
                 'right_arm.shoulder_pitch': 0,
-                #'right_arm.shoulder_roll': 0,
+                'right_arm.shoulder_roll': 0,
                 'right_arm.arm_yaw': 0,
                 'right_arm.elbow_pitch': 0,
                 'right_arm.hand.forearm_yaw': 0,
@@ -191,7 +191,7 @@ class Body(NodeBase):
             # Moving arm and hand into position
             pos_RA = {
                 'right_arm.shoulder_pitch': 0, #-20
-                #'right_arm.shoulder_roll': 0, # -10
+                'right_arm.shoulder_roll': -45, # -10
                 'right_arm.arm_yaw': -70, # -10
                 'right_arm.elbow_pitch': -115, # -120
                 'right_arm.hand.forearm_yaw': -60, # 0
@@ -203,7 +203,7 @@ class Body(NodeBase):
             # Loop Hand Wave
             pos_RB = {
                 'right_arm.shoulder_pitch': 0,
-                #'right_arm.shoulder_roll': 0,
+                'right_arm.shoulder_roll': -15,
                 'right_arm.arm_yaw': -70,
                 'right_arm.elbow_pitch': -115,
                 'right_arm.hand.forearm_yaw': -60,
@@ -214,7 +214,7 @@ class Body(NodeBase):
 
             pos_RC = {
                 'right_arm.shoulder_pitch': 0,
-                #'right_arm.shoulder_roll': 0,
+                'right_arm.shoulder_roll': -45,
                 'right_arm.arm_yaw': -70,
                 'right_arm.elbow_pitch': -115,
                 'right_arm.hand.forearm_yaw': -60,
