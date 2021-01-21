@@ -16,7 +16,7 @@ dependencies:
     - pyaudio
     - swig
     - pip:
-        - reachy==1.2.3
+        - reachy==1.3.2
         - paho-mqtt
         - webrtcvad
         - pocketsphinx

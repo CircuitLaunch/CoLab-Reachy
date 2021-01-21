@@ -2,7 +2,7 @@ version: '3'
 
 services:
     reachy-docker:
-        image: wisehackermonkey/reachy-docker:latest
+        image: ekkus93/reachy-docker:latest
         container_name: reachy-docker
         ports:
             - 8888:8888
